@@ -20,4 +20,14 @@ class Admin extends Model
     {
         return $this->belongsTo(Division::class, 'division_id', 'id');
     }
+
+    public function eventRegistrations()
+    {
+        return $this->hasMany(EventRegistration::class, 'verified_by', 'id');
+    }
+
+    public function competitionRegistrations()
+    {
+        return $this->hasMany(CompetitionRegistration::class, 'verified_by', 'id');
+    }
 }
