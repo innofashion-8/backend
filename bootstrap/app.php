@@ -2,6 +2,7 @@
 
 use App\Utils\HttpResponseCode;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -45,6 +46,13 @@ return Application::configure(basePath: dirname(__DIR__))
                     $statusCode = HttpResponseCode::HTTP_UNAUTHORIZED;
                     $message = 'Unauthenticated access.';
                 } 
+                elseif ($e instanceof ModelNotFoundException) {
+                    $statusCode = HttpResponseCode::HTTP_NOT_FOUND;
+                    
+                    $modelName = class_basename($e->getModel()); 
+                    
+                    $message = "Data {$modelName} tidak ditemukan."; 
+                }
                 elseif ($e instanceof NotFoundHttpException) {
                     $statusCode = HttpResponseCode::HTTP_NOT_FOUND;
                     $message = 'Resource not found.';
