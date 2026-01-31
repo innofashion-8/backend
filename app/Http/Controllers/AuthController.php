@@ -2,19 +2,40 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\Admin\LoginRequest;
+use App\Http\Requests\Admin\GoogleLoginRequest;
+use App\Http\Requests\User\LoginRequest;
 use App\Services\AuthService;
 
 class AuthController extends Controller
 {
     protected $authService;
 
-    public function __construct()
+    public function __construct(AuthService $authService)
     {
-        $this->authService = new AuthService();
+        $this->authService = $authService;
     }
     
-    public function loginAdmin(LoginRequest $request)
+    public function login(LoginRequest $request)
+    {
+        $result = $this->authService->login($request->email, $request->password);
+        $responseData = [
+            'token' => $result['token'],
+            'user'  => $result['user']
+        ];
+        $this->success("Login Berhasil", $responseData);
+    }
+
+    public function googleLogin(GoogleLoginRequest $request)
+    {
+        $result = $this->authService->googleLogin($request->token);
+        $responseData = [
+            'token' => $result['token'],
+            'user'  => $result['user']
+        ];
+        $this->success("Login Berhasil", $responseData);
+    }
+    
+    public function loginAdmin(GoogleLoginRequest $request)
     {
         $result = $this->authService->loginAdmin($request->token);
         $responseData = [

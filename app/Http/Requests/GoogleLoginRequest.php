@@ -4,7 +4,7 @@ namespace App\Http\Requests\Admin;
 
 use App\Http\Requests\ApiRequest;
 
-class LoginRequest extends ApiRequest
+class GoogleLoginRequest extends ApiRequest
 {
     /**
      * Determine if the user is authorized to make this request.
