@@ -11,11 +11,11 @@ Route::prefix('auth')->group(function() {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/login/google', [AuthController::class, 'googleLogin']);
-    Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:user,admin');
+    Route::post('/admin/login/google', [AuthController::class, 'loginAdmin']);
 });
 
-Route::prefix('admin')->group(function () {
-    Route::post('/login', [AuthController::class, 'loginAdmin']);
+Route::middleware('auth:user,admin')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout']);
 });
 
 Route::get('/events', [EventController::class, 'index']);
