@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enum\EventCategory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
@@ -17,6 +18,12 @@ class Event extends Model
         'quota',
         'start_time',
         'is_active',
+    ];
+
+    protected $casts = [
+        'category' => EventCategory::class,
+        'start_time' => 'datetime',
+        'is_active' => 'boolean',
     ];
 
     public function eventRegistrations()
