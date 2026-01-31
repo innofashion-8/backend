@@ -16,10 +16,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('name');
             $table->string('slug')->unique();
-            $table->enum('category', [
-                CompetitionCategory::ADVANCED,
-                CompetitionCategory::INTERMEDIATE
-            ])->default(CompetitionCategory::INTERMEDIATE);
+            $table->enum('category', array_column(CompetitionCategory::cases(), 'value'))->default(CompetitionCategory::INTERMEDIATE->value);
             $table->text('description')->nullable();
             $table->decimal('registration_fee', 8, 2)->default(0);
             $table->boolean('is_active')->default(true);

@@ -16,10 +16,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('title');
             $table->string('slug')->unique();
-            $table->enum('category', [
-                EventCategory::TALKSHOW,
-                EventCategory::WORKSHOP
-            ]);
+            $table->enum('category', array_column(EventCategory::cases(), 'value'));
             $table->text('description')->nullable();
             $table->decimal('price', 8, 2)->default(0);
             $table->integer('quota');
