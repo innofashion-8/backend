@@ -1,5 +1,6 @@
 <?php
 
+use App\Enum\EventCategory;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -15,7 +16,10 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('title');
             $table->string('slug')->unique();
-            $table->enum('category', ['TALKSHOW', 'WORKSHOP']);
+            $table->enum('category', [
+                EventCategory::TALKSHOW,
+                EventCategory::WORKSHOP
+            ]);
             $table->text('description')->nullable();
             $table->decimal('price', 8, 2)->default(0);
             $table->integer('quota');
