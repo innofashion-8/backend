@@ -3,10 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Admin\LoginRequest;
-use App\Models\Admin;
 use App\Services\AuthService;
-use App\Utils\HttpResponse;
-use Illuminate\Http\Request;
 
 class AdminController extends Controller
 {
