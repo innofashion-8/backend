@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Admin\GoogleLoginRequest;
 use App\Http\Requests\User\LoginRequest;
 use App\Services\AuthService;
+use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
@@ -47,5 +48,12 @@ class AuthController extends Controller
             ]
         ];
         return $this->success("Login Admin Berhasil", $responseData);
+    }
+
+    public function logout(Request $request)
+    {
+        $this->authService->logout($request->user());
+        
+        return $this->success("Logout Berhasil", null);
     }
 }

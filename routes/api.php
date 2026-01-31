@@ -17,6 +17,10 @@ Route::prefix('admin')->group(function () {
     Route::post('/login', [AuthController::class, 'loginAdmin']);
 });
 
+Route::middleware('auth:user,admin')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout']);
+});
+
 Route::get('/events', [EventController::class, 'index']);
 Route::get('/events/{key}', [EventController::class, 'show']);
 

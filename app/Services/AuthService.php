@@ -36,7 +36,7 @@ class AuthService
             ]);
         }
 
-        $token = $user->createToken('USER_TOKEN')->plainTextToken;
+        $token = $user->createToken('USER_TOKEN', ['*'], now()->addDay())->plainTextToken;
 
         return [
             'token' => $token,
@@ -61,7 +61,7 @@ class AuthService
             ]);
         }
 
-        $token = $user->createToken('USER_TOKEN')->plainTextToken;
+        $token = $user->createToken('USER_TOKEN', ['*'], now()->addDay())->plainTextToken;
 
         return [
             'token' => $token,
@@ -94,11 +94,17 @@ class AuthService
             ]);
         }
 
-        $token = $admin->createToken('ADMIN_TOKEN')->plainTextToken;
+        $token = $admin->createToken('ADMIN_TOKEN', ['*'], now()->addDay())->plainTextToken;
 
         return [
             'admin' => $admin,
             'token' => $token
         ];
+    }
+
+    public function logout($user)
+    {
+        $user->currentAccessToken()->delete();
+        return true;
     }
 }
