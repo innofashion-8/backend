@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             EventSeeder::class,
             CompetitionSeeder::class,
+            UserSeeder::class
         ]);
     }
 }
