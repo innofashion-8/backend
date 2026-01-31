@@ -22,7 +22,7 @@ class AuthController extends Controller
             'token' => $result['token'],
             'user'  => $result['user']
         ];
-        $this->success("Login Berhasil", $responseData);
+        return $this->success("Login Berhasil", $responseData);
     }
 
     public function googleLogin(GoogleLoginRequest $request)
@@ -32,7 +32,7 @@ class AuthController extends Controller
             'token' => $result['token'],
             'user'  => $result['user']
         ];
-        $this->success("Login Berhasil", $responseData);
+        return $this->success("Login Berhasil", $responseData);
     }
     
     public function loginAdmin(GoogleLoginRequest $request)
@@ -46,6 +46,6 @@ class AuthController extends Controller
                 'division' => $result['admin']->division->name ?? null,
             ]
         ];
-        $this->success("Login Admin Berhasil", $responseData);
+        return $this->success("Login Admin Berhasil", $responseData);
     }
 }

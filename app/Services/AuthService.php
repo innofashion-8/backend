@@ -7,7 +7,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use Laravel\Socialite\Socialite;
+use Laravel\Socialite\Facades\Socialite;
 
 class AuthService 
 {
@@ -22,7 +22,7 @@ class AuthService
 
     public function login(string $email, string $password)
     {
-        $user = $this->user->where('email', $email)->get();
+        $user = $this->user->where('email', $email)->first();
         if (!$user)
         {
             throw ValidationException::withMessages([
@@ -37,7 +37,6 @@ class AuthService
         }
 
         $token = $user->createToken('USER_TOKEN')->plainTextToken;
-        $user->unset('password');
 
         return [
             'token' => $token,
@@ -63,7 +62,6 @@ class AuthService
         }
 
         $token = $user->createToken('USER_TOKEN')->plainTextToken;
-        $user->unset('password');
 
         return [
             'token' => $token,
