@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Admin\LoginRequest;
 use App\Services\AuthService;
 
-class AdminController extends Controller
+class AuthController extends Controller
 {
     protected $authService;
 
@@ -13,7 +13,8 @@ class AdminController extends Controller
     {
         $this->authService = new AuthService();
     }
-    public function login(LoginRequest $request)
+    
+    public function loginAdmin(LoginRequest $request)
     {
         $result = $this->authService->loginAdmin($request->token);
         $responseData = [

@@ -1,15 +1,19 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompetitionController;
 use App\Http\Controllers\EventController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-
+Route::prefix('auth')->group(function() {
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login']);
+});
 
 Route::prefix('admin')->group(function () {
-    Route::post('/login', [AdminController::class, 'login']);
+    Route::post('/login', [AuthController::class, 'loginAdmin']);
 });
 
 Route::get('/events', [EventController::class, 'index']);
