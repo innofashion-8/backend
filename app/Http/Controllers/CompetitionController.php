@@ -3,63 +3,31 @@
 namespace App\Http\Controllers;
 
 use App\Models\Competition;
+use App\Services\CompetitionService;
+use App\Utils\HttpResponseCode;
 use Illuminate\Http\Request;
 
 class CompetitionController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    protected $competitionService;
+
+    public function __construct(CompetitionService $competitionService)
+    {
+        $this->competitionService = $competitionService;
+    }
     public function index()
     {
-        //
+        $competitions = $this->competitionService->getCompetitions();
+        return $this->success("List Competition berhasil diambil", $competitions, HttpResponseCode::HTTP_OK);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function show(string $key)
     {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Competition $competition)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Competition $competition)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Competition $competition)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Competition $competition)
-    {
-        //
+        $competition = $this->competitionService->getCompetitionByKey($key);
+        return $this->success(
+            'Detail Competition berhasil diambil',
+            $competition,
+            HttpResponseCode::HTTP_OK
+        );
     }
 }
