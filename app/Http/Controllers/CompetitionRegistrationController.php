@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Data\SaveDraftDTO;
 use App\Enum\StatusRegistration;
 use App\Http\Requests\User\Register\SaveDraftRequest;
+use App\Http\Requests\User\Register\SubmitCompetitionRequest;
 use App\Models\CompetitionRegistration;
 use App\Services\CompetitionRegistrationService;
 use Illuminate\Http\Request;
@@ -44,10 +46,73 @@ class CompetitionRegistrationController extends Controller
     {
         $competition = $this->registrationService->findCompetition($key);
 
-        $dto = $request->toDTO($request->user()->id, $competition->id);
+        $payload = $request->validated()['draft_data'];
+
+        $fileFields = [
+            'payment_proof' => 'payments', 
+            'ktm_path'      => 'ktm', 
+            'id_card_path'  => 'id', 
+        ];
+
+        $existingDraft = $this->registrationService->getDraft($request->user()->id, $competition->id);
+
+        foreach ($fileFields as $field => $folder) {
+            $requestKey = "draft_data.{$field}";
+
+            if ($request->hasFile($requestKey)) {
+                $path = $request->file($requestKey)->store($folder, 'public');
+                
+                $payload[$field] = $path;
+            } else {
+                if ($existingDraft && isset($existingDraft->draft_data[$field])) {
+                    $payload[$field] = $existingDraft->draft_data[$field];
+                } else {
+                    $payload[$field] = null;
+                }
+            }
+        }
+
+        $dto = new SaveDraftDTO(
+            userId: $request->user()->id,
+            activityId: $competition->id,
+            draftData: $payload
+        );
 
         $registration = $this->registrationService->saveDraft($dto);
 
-        return $this->success("Draft saved successfully", $registration);
+        return $this->success("Draft berhasil disimpan", $registration);
+    }
+
+    public function submitFinal(SubmitCompetitionRequest $request, $key)
+    {
+        $competition = $this->registrationService->findCompetition($key);
+
+        $paymentPath = null;
+        $ktmPath = null;
+        $idCardPath = null;
+
+        if ($request->hasFile('payment_proof')) {
+            $paymentPath = $request->file('payment_proof')->store('payments', 'public');
+        }
+
+        if ($request->hasFile('ktm_path')) {
+            $ktmPath = $request->file('ktm_path')->store('ktm', 'public');
+        }
+        
+        if ($request->hasFile('id_card_path')) {
+            $idCardPath = $request->file('id_card_path')->store('id_card', 'public');
+        }
+
+        $dto = $request->toDTO(
+            $request->user()->id,
+            $competition->id,
+            $paymentPath,
+            $ktmPath,
+            $idCardPath
+        );
+
+        $registration = $this->registrationService->submitFinal($dto);
+
+        return $this->success("Pendaftaran berhasil disubmit! Silakan tunggu verifikasi admin.", $registration);
     }
 }

@@ -28,13 +28,13 @@ Route::get('/competitions/{key}', [CompetitionController::class, 'show']);
 
 Route::middleware('auth:user')->group(function () {
     Route::prefix('competitions')->group(function() {
-        Route::post('/{key}/submit', [CompetitionRegistrationController::class, 'register']);
+        Route::post('/{key}/submit', [CompetitionRegistrationController::class, 'submitFinal']);
         Route::get('/{key}/status', [CompetitionRegistrationController::class, 'checkStatus']);
         Route::post('/{key}/draft', [CompetitionRegistrationController::class, 'saveDraft']);
     });
 
     Route::prefix('events')->group(function() {
-        Route::post('/{key}/submit', [EventRegistrationController::class, 'register']);
+        Route::post('/{key}/submit', [EventRegistrationController::class, 'submitFinal']);
         Route::get('/{key}/status', [EventRegistrationController::class, 'checkStatus']);
         Route::post('/{key}/draft', [EventRegistrationController::class, 'saveDraft']);
     });
