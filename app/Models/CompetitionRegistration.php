@@ -20,6 +20,7 @@ class CompetitionRegistration extends Model
         'user_id',
         'competition_id',
         'verified_by',
+        'draft_data',
         'nrp',
         'batch',
         'major',

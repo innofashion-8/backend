@@ -21,6 +21,7 @@ class EventRegistration extends Model
         'user_id',
         'event_id',
         'verified_by',
+        'draft_data',
         'nrp',
         'major',
         'payment_proof',
