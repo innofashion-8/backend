@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Admin\GoogleLoginRequest;
 use App\Http\Requests\User\LoginRequest;
+use App\Http\Requests\User\RegisterRequest;
 use App\Services\AuthService;
 use Illuminate\Http\Request;
 
@@ -14,6 +15,16 @@ class AuthController extends Controller
     public function __construct(AuthService $authService)
     {
         $this->authService = $authService;
+    }
+
+    public function register(RegisterRequest $request)
+    {
+        $result = $this->authService->register($request->toDTO());
+        $responseData = [
+            'token' => $result['token'],
+            'user'  => $result['user']
+        ];
+        return $this->success("Registrasi Berhasil !", $responseData);
     }
     
     public function login(LoginRequest $request)

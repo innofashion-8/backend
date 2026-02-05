@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Data\RegisterDTO;
 use App\Models\Admin;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
@@ -18,6 +19,26 @@ class AuthService
     {
         $this->admin = $admin;
         $this->user = $user;
+    }
+
+    public function register(RegisterDTO $data) 
+    {
+        $user = User::create([
+            'name'        => $data->name,
+            'email'       => $data->email,
+            'password'    => Hash::make($data->password),
+            'type'        => $data->type,
+            'institution' => $data->institution,
+            'phone'       => $data->phone,
+            'line_id'     => $data->line,
+        ]);
+
+        $token = $user->createToken('USER_TOKEN')->plainTextToken;
+
+        return [
+            'user'  => $user,
+            'token' => $token
+        ];
     }
 
     public function login(string $email, string $password)
