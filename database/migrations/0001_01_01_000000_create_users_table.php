@@ -22,7 +22,7 @@ return new class extends Migration
             $table->enum('type', array_column(UserType::cases(), 'value'))
                   ->default(UserType::EXTERNAL->value);
             $table->string('institution')->nullable();
-            $table->string('phone')->nullable();
+            $table->string('phone')->unique();
             $table->string('line')->nullable();
             $table->rememberToken();
             $table->timestamps();
