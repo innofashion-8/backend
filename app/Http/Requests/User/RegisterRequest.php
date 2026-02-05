@@ -6,6 +6,7 @@ use App\Data\RegisterDTO;
 use App\Enum\UserType;
 use App\Http\Requests\ApiRequest;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
 
 class RegisterRequest extends ApiRequest
@@ -31,11 +32,19 @@ class RegisterRequest extends ApiRequest
             'password'    => ['required', 'string', 'min:8', 'confirmed'],
             'type'        => ['required', new Enum(UserType::class)],
             
-            'institution' => ['required', 'string', 'max:255'],
+            'institution' => [
+                Rule::requiredIf(function () {
+                    return $this->input('type') === UserType::EXTERNAL->value;
+                }),
+                'nullable',
+                'string',
+                'max:255'
+            ],
             'phone'       => [
                 'required', 
                 'string', 
-                'regex:/^(\+62|62|0)8[1-9][0-9]{6,11}$/' 
+                'regex:/^(\+62|62|0)8[1-9][0-9]{6,11}$/',
+                'unique:users,phone'
             ],
             'line'     => [
                 'nullable', 
@@ -50,6 +59,7 @@ class RegisterRequest extends ApiRequest
         return [
             'phone.regex'   => 'Format nomor telepon tidak valid. Gunakan awalan 08, 628, atau +628.',
             'line.regex' => 'Line ID hanya boleh mengandung huruf, angka, titik, strip, dan underscore (4-20 karakter).',
+            'institution.required' => 'Peserta Eksternal wajib mengisi asal institusi/sekolah.',
         ];
     }
 
@@ -62,7 +72,7 @@ class RegisterRequest extends ApiRequest
             email: $data['email'],
             password: $data['password'],
             type: UserType::from($data['type']),
-            institution: $data['institution'],
+            institution: $data['institution'] ?? null,
             phone: $data['phone'],
             line: $data['line'] ?? null,
         );
