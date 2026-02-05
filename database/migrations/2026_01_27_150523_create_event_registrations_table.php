@@ -1,5 +1,6 @@
 <?php
 
+use App\Enum\StatusRegistration;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -17,12 +18,14 @@ return new class extends Migration
             $table->foreignUuid('event_id')->constrained('events')->onDelete('cascade');
             $table->foreignUuid('verified_by')->nullable()->constrained('admins')->onDelete('set null');
 
+            $table->json('draft_data')->nullable();
+
             $table->string('nrp')->nullable()->unique(); // Nullable buat External
             $table->string('major')->nullable();
             
             $table->string('payment_proof')->nullable();
-            
-            $table->enum('status', ['pending', 'verified', 'rejected'])->default('pending'); 
+
+            $table->enum('status', array_column(StatusRegistration::cases(), 'value'))->default(StatusRegistration::DRAFT->value);
             $table->text('rejection_reason')->nullable();
             
             $table->boolean('attended')->default(false);
