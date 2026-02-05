@@ -25,6 +25,30 @@ class SaveDraftRequest extends ApiRequest
     {
         return [
             'draft_data' => 'required|array',
+            'draft_data.payment_proof' => [
+                'nullable', 
+                'file',                 
+                'mimes:jpg,jpeg,png,pdf', 
+                'max:2048'              
+            ],
+
+            // Validasi File: KTM
+            'draft_data.ktm_path' => [
+                'nullable', 
+                'file', 
+                'mimes:jpg,jpeg,png',
+                'max:2048'
+            ],
+
+            'draft_data.id_card_path' => [
+                'nullable', 
+                'file', 
+                'mimes:jpg,jpeg,png', 
+                'max:2048'
+            ],
+            'draft_data.nrp'       => 'nullable|string|max:50',
+            'draft_data.major'     => 'nullable|string|max:100',
+            'draft_data.batch'     => 'nullable|integer|min:2018|max:' . date('Y'),
         ];
     }
 
