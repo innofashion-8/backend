@@ -55,8 +55,6 @@ class SubmitCompetitionRequest extends ApiRequest
             
             ktmPath: $uploadedKtmPath,
             idCardPath: $uploadedIdCardPath,
-            
-            extraData: $data
         );
     }
 }

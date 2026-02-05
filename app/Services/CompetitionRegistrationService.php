@@ -108,7 +108,7 @@ class CompetitionRegistrationService
             'ktm_path'      => $finalKtm,
             'id_card_path'  => $finalIdCard,
             
-            'draft_data'    => $dto->extraData
+            'draft_data'    => null,
         ]);
         
         return $registration;

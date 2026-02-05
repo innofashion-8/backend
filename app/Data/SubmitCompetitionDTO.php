@@ -15,6 +15,5 @@ class SubmitCompetitionDTO
         public readonly ?string $ktmPath,
         public readonly ?string $idCardPath,
         
-        public readonly array $extraData // Buat nyimpen full payload ke draft_data
     ) {}
 }
