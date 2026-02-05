@@ -2,64 +2,49 @@
 
 namespace App\Http\Controllers;
 
+use App\Enum\StatusRegistration;
+use App\Http\Requests\User\Register\SaveDraftRequest;
 use App\Models\EventRegistration;
+use App\Services\EventRegistrationService;
 use Illuminate\Http\Request;
 
 class EventRegistrationController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    protected $registrationService;
+
+    public function __construct(EventRegistrationService $registrationService)
     {
-        //
+        $this->registrationService = $registrationService;
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function checkStatus(Request $request, $key)
     {
-        //
-    }
+        $event = $this->registrationService->findEvent($key);
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
+        $registration = $this->registrationService->getDraft($request->user()->id, $event->id);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(EventRegistration $eventRegistration)
-    {
-        //
-    }
+        if (!$registration) {
+            return $this->success("Belum terdaftar", [
+                'status' => 'UNREGISTERED',
+                'is_locked' => false,
+                'draft_data' => null 
+            ]);
+        }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(EventRegistration $eventRegistration)
-    {
-        //
+        return $this->success("Status registration fetched", [
+            'registration_id' => $registration->id,
+            'status'          => $registration->status->value,
+            'is_locked'       => $registration->status !== StatusRegistration::DRAFT,
+            'rejection_reason'=> $registration->rejection_reason,
+            'draft_data'       => $registration->draft_data ?? (object)[], 
+        ]);
     }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, EventRegistration $eventRegistration)
+    
+    public function saveDraft(SaveDraftRequest $request, $key)
     {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(EventRegistration $eventRegistration)
-    {
-        //
+        $event = $this->registrationService->findEvent($key);
+        $dto = $request->toDTO($request->user()->id, $event->id);
+        $registration = $this->registrationService->saveDraft($dto);
+        return $this->success("Draft berhasil disimpan.", $registration);
     }
 }

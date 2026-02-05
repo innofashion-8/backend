@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enum\StatusRegistration;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
@@ -9,6 +10,11 @@ class CompetitionRegistration extends Model
 {
     use HasUuids;
     protected $table = 'competition_registrations';
+
+    protected $casts = [
+        'draft_data' => 'array',
+        'status'     => StatusRegistration::class,
+    ];
 
     protected $fillable = [
         'user_id',

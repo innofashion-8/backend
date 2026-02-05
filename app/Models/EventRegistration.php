@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enum\StatusRegistration;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
@@ -9,6 +10,13 @@ class EventRegistration extends Model
 {
     use HasUuids;
     protected $table = 'event_registrations';
+
+    protected $casts = [
+        'draft_data' => 'array',
+        'status'     => StatusRegistration::class,
+        'attended'   => 'boolean',
+    ];
+
     protected $fillable = [
         'user_id',
         'event_id',

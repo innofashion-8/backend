@@ -2,64 +2,52 @@
 
 namespace App\Http\Controllers;
 
+use App\Enum\StatusRegistration;
+use App\Http\Requests\User\Register\SaveDraftRequest;
 use App\Models\CompetitionRegistration;
+use App\Services\CompetitionRegistrationService;
 use Illuminate\Http\Request;
 
 class CompetitionRegistrationController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    protected $registrationService;
+
+    public function __construct(CompetitionRegistrationService $competitionRegistrationService)
     {
-        //
+        $this->registrationService = $competitionRegistrationService;
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function checkStatus(Request $request, $key)
     {
-        //
+        $competition = $this->registrationService->findCompetition($key);
+
+        $registration = $this->registrationService->getDraft($request->user()->id, $competition->id);
+
+        if (!$registration) {
+            return $this->success("Belum terdaftar", [
+                'status' => 'UNREGISTERED',
+                'is_locked' => false,
+                'draft_data' => null 
+            ]);
+        }
+
+        return $this->success("Status registration fetched", [
+            'registration_id' => $registration->id,
+            'status'          => $registration->status->value,
+            'is_locked'       => $registration->status !== StatusRegistration::DRAFT,
+            'rejection_reason'=> $registration->rejection_reason,
+            'draft_data'       => $registration->draft_data ?? (object)[], 
+        ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function saveDraft(SaveDraftRequest $request, $key)
     {
-        //
-    }
+        $competition = $this->registrationService->findCompetition($key);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(CompetitionRegistration $competitionRegistration)
-    {
-        //
-    }
+        $dto = $request->toDTO($request->user()->id, $competition->id);
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(CompetitionRegistration $competitionRegistration)
-    {
-        //
-    }
+        $registration = $this->registrationService->saveDraft($dto);
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, CompetitionRegistration $competitionRegistration)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(CompetitionRegistration $competitionRegistration)
-    {
-        //
+        return $this->success("Draft saved successfully", $registration);
     }
 }

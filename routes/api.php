@@ -3,7 +3,9 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompetitionController;
+use App\Http\Controllers\CompetitionRegistrationController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\EventRegistrationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -23,3 +25,17 @@ Route::get('/events/{key}', [EventController::class, 'show']);
 
 Route::get('/competitions', [CompetitionController::class, 'index']);
 Route::get('/competitions/{key}', [CompetitionController::class, 'show']);
+
+Route::middleware('auth:user')->group(function () {
+    Route::prefix('competitions')->group(function() {
+        Route::post('/{key}/submit', [CompetitionRegistrationController::class, 'register']);
+        Route::get('/{key}/status', [CompetitionRegistrationController::class, 'checkStatus']);
+        Route::post('/{key}/draft', [CompetitionRegistrationController::class, 'saveDraft']);
+    });
+
+    Route::prefix('events')->group(function() {
+        Route::post('/{key}/submit', [EventRegistrationController::class, 'register']);
+        Route::get('/{key}/status', [EventRegistrationController::class, 'checkStatus']);
+        Route::post('/{key}/draft', [EventRegistrationController::class, 'saveDraft']);
+    });
+});
