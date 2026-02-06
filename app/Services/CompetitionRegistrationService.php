@@ -145,32 +145,34 @@ class CompetitionRegistrationService
         $finalIdCard = $processFile($dto->idCardPath, $draft['id_card_path'] ?? null, $user->id_card_path, 'id_card');
         if (!$dto->nrp && !$finalIdCard) throw ValidationException::withMessages(['id_card_path' => ['ID Card wajib diupload.']]);
 
+        DB::beginTransaction();
+
         try {
-            return DB::transaction(function () use ($registration, $user, $dto, $finalPayment, $finalKtm, $finalIdCard) {
-                
-                $registration->update([
-                    'status'        => StatusRegistration::PENDING,
-                    'payment_proof' => $finalPayment,
-                    'draft_data'    => null, 
-                ]);
+            $registration->update([
+                'status'        => StatusRegistration::PENDING,
+                'payment_proof' => $finalPayment,
+                'draft_data'    => null, 
+            ]);
 
-                $user->update([
-                    'nrp'          => $dto->nrp ?? $user->nrp,
-                    'batch'        => $dto->batch ?? $user->batch,
-                    'major'        => $dto->major ?? $user->major,
-                    'ktm_path'     => $finalKtm,
-                    'id_card_path' => $finalIdCard,
-                    'phone'        => $dto->extraData['phone'] ?? $user->phone,
-                    'institution'  => $dto->extraData['institution'] ?? $user->institution,
-                ]);
+            $user->update([
+                'nrp'          => $dto->nrp ?? $user->nrp,
+                'batch'        => $dto->batch ?? $user->batch,
+                'major'        => $dto->major ?? $user->major,
+                'ktm_path'     => $finalKtm,
+                'id_card_path' => $finalIdCard,
+                'phone'        => $dto->extraData['phone'] ?? $user->phone,
+                'institution'  => $dto->extraData['institution'] ?? $user->institution,
+            ]);
 
-                return $registration;
-            });
+            DB::commit();
+
+            return $registration;
 
         } catch (\Exception $e) {
             
+            DB::rollBack();
+
             Log::error("Terjadi Error DB, Memulai File Rollback...");
-            
             foreach ($rollbackActions as $rollback) {
                 $rollback();
             }
