@@ -20,12 +20,12 @@ return new class extends Migration
 
             $table->json('draft_data')->nullable();
 
-            $table->string('nrp')->nullable()->unique(); // Nullable untuk eksternal
-            $table->integer('batch')->nullable(); // Angkatan
-            $table->string('major')->nullable();
+            // $table->string('nrp')->nullable()->unique(); // Nullable untuk eksternal
+            // $table->integer('batch')->nullable(); // Angkatan
+            // $table->string('major')->nullable();
 
-            $table->string('ktm_path')->nullable(); 
-            $table->string('id_card_path')->nullable();
+            // $table->string('ktm_path')->nullable(); 
+            // $table->string('id_card_path')->nullable();
             $table->string('payment_proof')->nullable();
             
             $table->enum('status', array_column(StatusRegistration::cases(), 'value'))->default(StatusRegistration::DRAFT->value);

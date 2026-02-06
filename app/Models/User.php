@@ -21,6 +21,11 @@ class User extends Authenticatable
         'password',
         'type',
         'institution',
+        'nrp',
+        'batch',
+        'major',
+        'ktm_path',
+        'id_card_path',
         'phone',
         'line',
     ];

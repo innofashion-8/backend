@@ -20,8 +20,14 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->enum('type', array_column(UserType::cases(), 'value'))
-                  ->default(UserType::EXTERNAL->value);
+                ->default(UserType::EXTERNAL->value);
+            $table->string('nrp')->nullable()->unique(); // Nullable untuk eksternal
+            $table->integer('batch')->nullable(); // Angkatan
+            $table->string('major')->nullable();
             $table->string('institution')->nullable();
+
+            $table->string('ktm_path')->nullable(); 
+            $table->string('id_card_path')->nullable();
             $table->string('phone')->unique();
             $table->string('line')->nullable();
             $table->rememberToken();

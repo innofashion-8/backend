@@ -20,8 +20,8 @@ return new class extends Migration
 
             $table->json('draft_data')->nullable();
 
-            $table->string('nrp')->nullable()->unique(); // Nullable buat External
-            $table->string('major')->nullable();
+            // $table->string('nrp')->nullable()->unique(); // Nullable buat External
+            // $table->string('major')->nullable();
             
             $table->string('payment_proof')->nullable();
 
