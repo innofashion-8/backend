@@ -21,15 +21,26 @@ class CompetitionRegistrationController extends Controller
 
     public function checkStatus(Request $request, $key)
     {
+        $user = $request->user();
         $competition = $this->registrationService->findCompetition($key);
+        $registration = $this->registrationService->getDraft($user->id, $competition->id);
 
-        $registration = $this->registrationService->getDraft($request->user()->id, $competition->id);
+        $userProfile = [
+            'nrp'      => $user->nrp,
+            'major'    => $user->major,
+            'batch'    => $user->batch,
+            'phone'    => $user->phone,
+            'ktm_path' => $user->ktm_path,
+            'id_card_path' => $user->id_card_path,
+            'institution' => $user->institution
+        ];
 
         if (!$registration) {
             return $this->success("Belum terdaftar", [
-                'status' => 'UNREGISTERED',
-                'is_locked' => false,
-                'draft_data' => null 
+                'status'       => 'UNREGISTERED',
+                'is_locked'    => false,
+                'draft_data'   => null,
+                'user_profile' => $userProfile
             ]);
         }
 
@@ -37,8 +48,8 @@ class CompetitionRegistrationController extends Controller
             'registration_id' => $registration->id,
             'status'          => $registration->status->value,
             'is_locked'       => $registration->status !== StatusRegistration::DRAFT,
-            'rejection_reason'=> $registration->rejection_reason,
-            'draft_data'       => $registration->draft_data ?? (object)[], 
+            'draft_data'      => $registration->draft_data ?? (object)[],
+            'user_profile'    => $userProfile
         ]);
     }
 

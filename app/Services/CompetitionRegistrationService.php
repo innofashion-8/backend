@@ -7,6 +7,7 @@ use App\Data\SubmitCompetitionDTO;
 use App\Enum\StatusRegistration;
 use App\Models\Competition;
 use App\Models\CompetitionRegistration;
+use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -71,46 +72,44 @@ class CompetitionRegistrationService
             ->where('competition_id', $dto->competitionId)
             ->first();
 
-        if (!$registration) {
-             throw ValidationException::withMessages(['status' => ['Silakan simpan draft terlebih dahulu.']]);
-        }
-
-        if ($registration->status !== StatusRegistration::DRAFT) {
-            throw ValidationException::withMessages(['status' => ['Data sudah disubmit. Tidak bisa submit ulang.']]);
+        if (!$registration || $registration->status !== StatusRegistration::DRAFT) {
+            throw ValidationException::withMessages(['status' => ['Invalid registration status.']]);
         }
 
         $draft = $registration->draft_data ?? [];
+        $user  = User::find($dto->userId);
 
         $finalPayment = $dto->paymentProof ?? $draft['payment_proof'] ?? null;
         if (!$finalPayment) {
             throw ValidationException::withMessages(['payment_proof' => ['Bukti pembayaran wajib diupload.']]);
         }
 
-        $finalKtm = $dto->ktmPath ?? $draft['ktm_path'] ?? null;
+        $finalKtm = $dto->ktmPath ?? $draft['ktm_path'] ?? $user->ktm_path ?? null;
         if ($dto->nrp && !$finalKtm) { 
-             throw ValidationException::withMessages(['ktm_path' => ['KTM wajib diupload untuk mahasiswa internal.']]);
+            throw ValidationException::withMessages(['ktm_path' => ['KTM wajib diupload.']]);
         }
 
-        $finalIdCard = $dto->idCardPath ?? $draft['id_card_path'] ?? null;
+        $finalIdCard = $dto->idCardPath ?? $draft['id_card_path'] ?? $user->id_card_path ?? null;
         if (!$dto->nrp && !$finalIdCard) {
-             throw ValidationException::withMessages(['id_card_path' => ['Kartu Identitas wajib diupload untuk peserta eksternal.']]);
+            throw ValidationException::withMessages(['id_card_path' => ['Kartu Identitas wajib diupload.']]);
         }
 
         $registration->update([
             'status'        => StatusRegistration::PENDING,
-            
             'payment_proof' => $finalPayment,
-            
-            'nrp'           => $dto->nrp,
-            'batch'         => $dto->batch,
-            'major'         => $dto->major,
-            
-            'ktm_path'      => $finalKtm,
-            'id_card_path'  => $finalIdCard,
-            
             'draft_data'    => null,
         ]);
-        
+
+        $user->update([
+            'nrp'          => $dto->nrp ?? $user->nrp,
+            'batch'        => $dto->batch ?? $user->batch,
+            'major'        => $dto->major ?? $user->major,
+            
+            'ktm_path'     => $finalKtm,
+            'id_card_path' => $finalIdCard,
+            
+        ]);
+
         return $registration;
     }
 }
