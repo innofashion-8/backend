@@ -34,7 +34,9 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->is('api/*')) {
                 
                 $statusCode = HttpResponseCode::HTTP_INTERNAL_SERVER_ERROR;
-                $message = $e->getMessage();
+                $message = app()->isProduction() 
+                        ? 'Terjadi kesalahan pada server (Internal Server Error).' 
+                        : $e->getMessage();
                 $data = null;
 
                 if ($e instanceof ValidationException) {
