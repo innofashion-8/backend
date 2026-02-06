@@ -9,6 +9,7 @@ use App\Http\Requests\User\Register\SubmitCompetitionRequest;
 use App\Models\CompetitionRegistration;
 use App\Services\CompetitionRegistrationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class CompetitionRegistrationController extends Controller
 {
@@ -60,9 +61,9 @@ class CompetitionRegistrationController extends Controller
         $payload = $request->validated()['draft_data'];
 
         $fileFields = [
-            'payment_proof' => 'payments', 
-            'ktm_path'      => 'ktm', 
-            'id_card_path'  => 'id', 
+            'payment_proof' => 'payments/draft', 
+            'ktm_path'      => 'ktm/draft', 
+            'id_card_path'  => 'id/draft', 
         ];
 
         $existingDraft = $this->registrationService->getDraft($request->user()->id, $competition->id);
@@ -71,8 +72,13 @@ class CompetitionRegistrationController extends Controller
             $requestKey = "draft_data.{$field}";
 
             if ($request->hasFile($requestKey)) {
+                if ($existingDraft && isset($existingDraft->draft_data[$field])) {
+                    $oldPath = $existingDraft->draft_data[$field];
+                    if (Storage::disk('public')->exists($oldPath)) {
+                        Storage::disk('public')->delete($oldPath);
+                    }
+                }
                 $path = $request->file($requestKey)->store($folder, 'public');
-                
                 $payload[$field] = $path;
             } else {
                 if ($existingDraft && isset($existingDraft->draft_data[$field])) {

@@ -9,6 +9,9 @@ use App\Models\Competition;
 use App\Models\CompetitionRegistration;
 use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -73,43 +76,108 @@ class CompetitionRegistrationService
             ->first();
 
         if (!$registration || $registration->status !== StatusRegistration::DRAFT) {
-            throw ValidationException::withMessages(['status' => ['Invalid registration status.']]);
+            throw ValidationException::withMessages(['status' => ['Invalid registration status or draft not found.']]);
         }
 
         $draft = $registration->draft_data ?? [];
         $user  = User::find($dto->userId);
 
-        $finalPayment = $dto->paymentProof ?? $draft['payment_proof'] ?? null;
-        if (!$finalPayment) {
-            throw ValidationException::withMessages(['payment_proof' => ['Bukti pembayaran wajib diupload.']]);
-        }
+        $rollbackActions = [];
 
-        $finalKtm = $dto->ktmPath ?? $draft['ktm_path'] ?? $user->ktm_path ?? null;
-        if ($dto->nrp && !$finalKtm) { 
-            throw ValidationException::withMessages(['ktm_path' => ['KTM wajib diupload.']]);
-        }
-
-        $finalIdCard = $dto->idCardPath ?? $draft['id_card_path'] ?? $user->id_card_path ?? null;
-        if (!$dto->nrp && !$finalIdCard) {
-            throw ValidationException::withMessages(['id_card_path' => ['Kartu Identitas wajib diupload.']]);
-        }
-
-        $registration->update([
-            'status'        => StatusRegistration::PENDING,
-            'payment_proof' => $finalPayment,
-            'draft_data'    => null,
-        ]);
-
-        $user->update([
-            'nrp'          => $dto->nrp ?? $user->nrp,
-            'batch'        => $dto->batch ?? $user->batch,
-            'major'        => $dto->major ?? $user->major,
+        $processFile = function($newPath, $draftPath, $masterPath, $targetFolder) use (&$rollbackActions) {
             
-            'ktm_path'     => $finalKtm,
-            'id_card_path' => $finalIdCard,
-            
-        ]);
+            // FILE BARU (Upload)
+            if ($newPath) {
+                // Hapus draft lama (Cleanup biasa)
+                if ($draftPath && Storage::disk('public')->exists($draftPath)) {
+                    Storage::disk('public')->delete($draftPath);
+                }
 
-        return $registration;
+                // ROLLBACK PLAN: Kalau DB Error, hapus file baru ini biar gak nyampah
+                $rollbackActions[] = function() use ($newPath) {
+                    Storage::disk('public')->delete($newPath);
+                    Log::info("Rollback: Menghapus file baru {$newPath}");
+                };
+
+                return $newPath; 
+            }
+
+            // FILE DRAFT (Move)
+            if ($draftPath && Storage::disk('public')->exists($draftPath)) {
+                if (str_contains($draftPath, '/draft/')) {
+                    $filename  = basename($draftPath);
+                    $finalPath = "{$targetFolder}/{$filename}";
+
+                    try {
+                         Storage::disk('public')->move($draftPath, $finalPath);
+                         
+                         
+                         $rollbackActions[] = function() use ($finalPath, $draftPath) {
+                            if (Storage::disk('public')->exists($finalPath)) {
+                                Storage::disk('public')->move($finalPath, $draftPath);
+                                Log::info("Rollback: Mengembalikan file {$finalPath} ke {$draftPath}");
+                            }
+                         };
+
+                         return $finalPath;
+                    } catch (\Exception $e) {
+                        return $draftPath; 
+                    }
+                }
+                return $draftPath;
+            }
+
+            // FILE MASTER
+            if ($masterPath) {
+                return $masterPath;
+            }
+
+            return null;
+        };
+
+        
+        $finalPayment = $processFile($dto->paymentProof, $draft['payment_proof'] ?? null, null, 'payments');
+        if (!$finalPayment) throw ValidationException::withMessages(['payment_proof' => ['Bukti pembayaran wajib diupload.']]);
+
+        $finalKtm = $processFile($dto->ktmPath, $draft['ktm_path'] ?? null, $user->ktm_path, 'ktm');
+        if ($dto->nrp && !$finalKtm) throw ValidationException::withMessages(['ktm_path' => ['KTM wajib diupload.']]);
+
+        $finalIdCard = $processFile($dto->idCardPath, $draft['id_card_path'] ?? null, $user->id_card_path, 'id_card');
+        if (!$dto->nrp && !$finalIdCard) throw ValidationException::withMessages(['id_card_path' => ['ID Card wajib diupload.']]);
+
+        try {
+            return DB::transaction(function () use ($registration, $user, $dto, $finalPayment, $finalKtm, $finalIdCard) {
+                
+                $registration->update([
+                    'status'        => StatusRegistration::PENDING,
+                    'payment_proof' => $finalPayment,
+                    'draft_data'    => null, 
+                ]);
+
+                $user->update([
+                    'nrp'          => $dto->nrp ?? $user->nrp,
+                    'batch'        => $dto->batch ?? $user->batch,
+                    'major'        => $dto->major ?? $user->major,
+                    'ktm_path'     => $finalKtm,
+                    'id_card_path' => $finalIdCard,
+                    'phone'        => $dto->extraData['phone'] ?? $user->phone,
+                    'institution'  => $dto->extraData['institution'] ?? $user->institution,
+                ]);
+
+                return $registration;
+            });
+
+        } catch (\Exception $e) {
+            
+            Log::error("Terjadi Error DB, Memulai File Rollback...");
+            
+            foreach ($rollbackActions as $rollback) {
+                $rollback();
+            }
+
+            Log::error("Error Submit Final: " . $e->getMessage());
+
+            throw $e; 
+        }
     }
 }
