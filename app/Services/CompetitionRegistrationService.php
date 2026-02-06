@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Data\SaveDraftDTO;
 use App\Data\SubmitCompetitionDTO;
 use App\Enum\StatusRegistration;
+use App\Enum\UserType;
 use App\Models\Competition;
 use App\Models\CompetitionRegistration;
 use App\Models\User;
@@ -82,6 +83,9 @@ class CompetitionRegistrationService
         $draft = $registration->draft_data ?? [];
         $user  = User::find($dto->userId);
 
+        $isInternal = $user->type === UserType::INTERNAL;
+        $isExternal = $user->type === UserType::EXTERNAL;
+
         $rollbackActions = [];
 
         $processFile = function($newPath, $draftPath, $masterPath, $targetFolder) use (&$rollbackActions) {
@@ -139,11 +143,16 @@ class CompetitionRegistrationService
         $finalPayment = $processFile($dto->paymentProof, $draft['payment_proof'] ?? null, null, 'payments');
         if (!$finalPayment) throw ValidationException::withMessages(['payment_proof' => ['Bukti pembayaran wajib diupload.']]);
 
-        $finalKtm = $processFile($dto->ktmPath, $draft['ktm_path'] ?? null, $user->ktm_path, 'ktm');
-        if ($dto->nrp && !$finalKtm) throw ValidationException::withMessages(['ktm_path' => ['KTM wajib diupload.']]);
+        $finalKtm = $isInternal ? $processFile($dto->ktmPath, $draft['ktm_path'] ?? null, $user->ktm_path, 'ktm') : null;
+        if ($isInternal && !$finalKtm) { 
+             throw ValidationException::withMessages(['ktm_path' => ['Mahasiswa Internal wajib upload KTM.']]);
+        }
 
-        $finalIdCard = $processFile($dto->idCardPath, $draft['id_card_path'] ?? null, $user->id_card_path, 'id_card');
-        if (!$dto->nrp && !$finalIdCard) throw ValidationException::withMessages(['id_card_path' => ['ID Card wajib diupload.']]);
+        $finalIdCard = $isExternal ? $processFile($dto->idCardPath, $draft['id_card_path'] ?? null, $user->id_card_path, 'id_card') : null;
+        if ($isExternal && !$finalIdCard) {
+            throw ValidationException::withMessages(['id_card_path' => ['Peserta Eksternal wajib upload Kartu Identitas.']]);
+        }
+
 
         DB::beginTransaction();
 
@@ -155,13 +164,11 @@ class CompetitionRegistrationService
             ]);
 
             $user->update([
-                'nrp'          => $dto->nrp ?? $user->nrp,
-                'batch'        => $dto->batch ?? $user->batch,
+                'nrp'          => $isInternal ? ($dto->nrp ?? $user->nrp) : null,
+                'batch'        => $isInternal ? ($dto->batch ?? $user->batch) : null,
                 'major'        => $dto->major ?? $user->major,
                 'ktm_path'     => $finalKtm,
                 'id_card_path' => $finalIdCard,
-                'phone'        => $dto->extraData['phone'] ?? $user->phone,
-                'institution'  => $dto->extraData['institution'] ?? $user->institution,
             ]);
 
             DB::commit();
