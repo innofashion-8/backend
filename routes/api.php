@@ -17,6 +17,7 @@ Route::prefix('auth')->group(function() {
 });
 
 Route::middleware('auth:user,admin')->group(function () {
+    Route::get('/profile', [AuthController::class, 'profile']);
     Route::post('/logout', [AuthController::class, 'logout']);
 });
 

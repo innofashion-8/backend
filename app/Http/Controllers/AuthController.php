@@ -67,4 +67,9 @@ class AuthController extends Controller
         
         return $this->success("Logout Berhasil", null);
     }
+
+    public function profile(Request $request)
+    {
+        return $this->success("Data User", $request->user());
+    }
 }
