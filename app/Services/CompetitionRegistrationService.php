@@ -72,7 +72,8 @@ class CompetitionRegistrationService
 
     public function submitFinal(SubmitCompetitionDTO $dto): CompetitionRegistration
     {
-        $registration = $this->registration->where('user_id', $dto->userId)
+        $registration = $this->registration->with('user')
+            ->where('user_id', $dto->userId)
             ->where('competition_id', $dto->competitionId)
             ->first();
 
@@ -81,7 +82,7 @@ class CompetitionRegistrationService
         }
 
         $draft = $registration->draft_data ?? [];
-        $user  = User::find($dto->userId);
+        $user  = $registration->user;
 
         $isInternal = $user->type === UserType::INTERNAL;
         $isExternal = $user->type === UserType::EXTERNAL;

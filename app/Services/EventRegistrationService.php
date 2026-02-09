@@ -73,7 +73,8 @@ class EventRegistrationService
 
     public function submitFinal(SubmitEventDTO $dto): EventRegistration
     {
-        $registration = $this->registration->where('user_id', $dto->userId)
+        $registration = $this->registration->with('user')
+            ->where('user_id', $dto->userId)
             ->where('event_id', $dto->eventId)
             ->first();
         if (!$registration || $registration->status !== StatusRegistration::DRAFT) {
@@ -82,7 +83,7 @@ class EventRegistrationService
 
         $draft = $registration->draft_data ?? [];
 
-        $user = User::find($dto->userId);
+        $user = $registration->user;
 
         $isInternal = $user->type === UserType::INTERNAL;
 
