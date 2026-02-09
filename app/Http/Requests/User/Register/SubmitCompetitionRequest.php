@@ -23,9 +23,9 @@ class SubmitCompetitionRequest extends ApiRequest
         return [
             'payment_proof' => ['nullable', 'file', 'mimes:jpg,jpeg,png', 'max:2048'],
 
-            'nrp'           => [Rule::requiredIf($isInternal), 'nullable', 'string', 'max:20', 
+            'nrp'           => ['nullable', 'string', 'max:20', 
                                 Rule::unique('users', 'nrp')->ignore($user->id)],
-            'batch'         => [Rule::requiredIf($isInternal), 'nullable', 'integer', 'min:2018', 'max:' . date('Y')],
+            'batch'         => ['nullable', 'integer', 'min:2018', 'max:' . date('Y')],
             'major'         => ['required', 'string'],
 
             'ktm_path'      => ['nullable', 'file', 'mimes:jpg,jpeg,png', 'max:2048'],

@@ -86,6 +86,18 @@ class CompetitionRegistrationService
         $isInternal = $user->type === UserType::INTERNAL;
         $isExternal = $user->type === UserType::EXTERNAL;
 
+        $finalNrp   = $isInternal ? ($dto->nrp ?? $user->nrp) : null;
+        $finalBatch = $isInternal ? ($dto->batch ?? $user->batch) : null;
+
+        if ($isInternal) {
+            if (empty($finalNrp)) {
+                throw ValidationException::withMessages(['nrp' => ['NRP wajib diisi (tidak ditemukan di input maupun profil).']]);
+            }
+            if (empty($finalBatch)) {
+                throw ValidationException::withMessages(['batch' => ['Angkatan wajib diisi.']]);
+            }
+        }
+
         $rollbackActions = [];
 
         $processFile = function($newPath, $draftPath, $masterPath, $targetFolder) use (&$rollbackActions) {
@@ -138,7 +150,6 @@ class CompetitionRegistrationService
 
             return null;
         };
-
         
         $finalPayment = $processFile($dto->paymentProof, $draft['payment_proof'] ?? null, null, 'payments');
         if (!$finalPayment) throw ValidationException::withMessages(['payment_proof' => ['Bukti pembayaran wajib diupload.']]);
@@ -164,8 +175,8 @@ class CompetitionRegistrationService
             ]);
 
             $user->update([
-                'nrp'          => $isInternal ? ($dto->nrp ?? $user->nrp) : null,
-                'batch'        => $isInternal ? ($dto->batch ?? $user->batch) : null,
+                'nrp'          => $finalNrp,
+                'batch'        => $finalBatch,
                 'major'        => $dto->major ?? $user->major,
                 'ktm_path'     => $finalKtm,
                 'id_card_path' => $finalIdCard,
