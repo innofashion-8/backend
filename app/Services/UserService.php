@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\CompetitionRegistration;
 use App\Models\EventRegistration;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 
 class UserService
 {
@@ -13,6 +14,16 @@ class UserService
     public function __construct(User $user)
     {
         $this->user = $user;
+    }
+
+    public function getUsers(): Collection
+    {
+        return $this->user->latest()->get();
+    }
+
+    public function getUser(string $id): ?User
+    {
+        return $this->user->find($id);
     }
 
     public function getRegistrations(string $userId): array

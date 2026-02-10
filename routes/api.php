@@ -1,13 +1,11 @@
 <?php
 
-use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompetitionController;
 use App\Http\Controllers\CompetitionRegistrationController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\EventRegistrationController;
 use App\Http\Controllers\UserController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function() {
@@ -40,5 +38,12 @@ Route::middleware('auth:user')->group(function () {
         Route::post('/{key}/submit', [EventRegistrationController::class, 'submitFinal']);
         Route::get('/{key}/status', [EventRegistrationController::class, 'checkStatus']);
         Route::post('/{key}/draft', [EventRegistrationController::class, 'saveDraft']);
+    });
+});
+
+Route::middleware('auth:admin')->group(function() {
+    Route::prefix('admin')->group(function() {
+        Route::get('/users', [UserController::class, 'index']);
+        Route::get('/users/{id}', [UserController::class, 'show']);
     });
 });
