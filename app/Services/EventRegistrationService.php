@@ -25,7 +25,7 @@ class EventRegistrationService
         $this->registration = $registration;
     }
 
-    public function findEvent(string $key)
+    public function findEvent(string $key): Event
     {
         if (Str::isUuid($key)) {
             $event = Event::where('id', $key)->first();
@@ -157,6 +157,18 @@ class EventRegistrationService
 
         DB::beginTransaction();
         try {
+            $event = Event::where('id', $dto->eventId)->lockForUpdate()->first();
+
+            $currentParticipants = $event->eventRegistrations()
+                ->whereIn('status', [StatusRegistration::PENDING, StatusRegistration::VERIFIED])
+                ->count();
+
+            if ($currentParticipants >= $event->quota) {
+                throw ValidationException::withMessages([
+                    'quota' => ['Mohon maaf, kuota pendaftaran untuk event ini sudah penuh.']
+                ]);
+            }
+            
             $registration->update([
                 'status' => StatusRegistration::PENDING,
                 'draft_data' => null,
