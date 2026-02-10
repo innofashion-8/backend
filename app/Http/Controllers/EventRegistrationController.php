@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Data\EventFilterDTO;
 use App\Data\SaveDraftDTO;
 use App\Enum\StatusRegistration;
+use App\Http\Requests\Admin\UpdateStatusRequest;
 use App\Http\Requests\User\Register\SaveDraftRequest;
 use App\Http\Requests\User\Register\SubmitEventRequest;
 use App\Models\EventRegistration;
@@ -114,5 +115,14 @@ class EventRegistrationController extends Controller
 
         $registration = $this->registrationService->submitFinal($dto);
         return $this->success("Pendaftaran event berhasil disubmit.", $registration);
+    }
+
+    public function updateStatus(UpdateStatusRequest $request, $id)
+    {
+        $dto = $request->toDTO($id);
+
+        $registration = $this->registrationService->updateStatus($dto);
+
+        return $this->success("Status pendaftaran berhasil diubah", $registration);
     }
 }

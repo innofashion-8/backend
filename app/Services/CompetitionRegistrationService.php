@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Data\CompetitionFilterDTO;
 use App\Data\SaveDraftDTO;
 use App\Data\SubmitCompetitionDTO;
+use App\Data\UpdateStatusDTO;
 use App\Enum\StatusRegistration;
 use App\Enum\UserType;
 use App\Models\Competition;
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -231,5 +233,37 @@ class CompetitionRegistrationService
 
             throw $e; 
         }
+    }
+
+    public function updateStatus(UpdateStatusDTO $dto)
+    {
+        $registration = $this->registration->with('user')
+                            ->where('id', $dto->registrationId)
+                            ->first();
+
+        if (!$registration) {
+            throw ValidationException::withMessages(['id' => ['Pendaftaran tidak ditemukan.']]);
+        }
+
+        if ($registration->status === StatusRegistration::VERIFIED) {
+            throw ValidationException::withMessages(['status' => ['Pendaftaran sudah terverifikasi sebelumnya.']]);
+        }
+
+        $registration->update([
+            'status' => StatusRegistration::from($dto->status),
+            'rejection_reason' => $dto->rejection_reason,
+        ]);
+
+        try {
+            if ($dto->status === StatusRegistration::VERIFIED->value) {
+                // Mail::to($registration->user->email)->queue(new RegistrationVerified($registration));
+            } elseif ($dto->status === StatusRegistration::REJECTED->value) {
+                // Mail::to($registration->user->email)->queue(new RegistrationRejected($registration, $dto->rejection_reason));
+            }
+        } catch (\Exception $e) {
+            Log::error("Gagal mengirim email status pendaftaran: " . $e->getMessage());
+        }
+
+        return $registration;
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Data\CompetitionFilterDTO;
 use App\Data\SaveDraftDTO;
 use App\Enum\StatusRegistration;
+use App\Http\Requests\Admin\UpdateStatusRequest;
 use App\Http\Requests\User\Register\SaveDraftRequest;
 use App\Http\Requests\User\Register\SubmitCompetitionRequest;
 use App\Models\CompetitionRegistration;
@@ -139,5 +140,14 @@ class CompetitionRegistrationController extends Controller
         $registration = $this->registrationService->submitFinal($dto);
 
         return $this->success("Pendaftaran berhasil disubmit! Silakan tunggu verifikasi admin.", $registration);
+    }
+
+    public function updateStatus(UpdateStatusRequest $request, $id)
+    {
+        $dto = $request->toDTO($id);
+
+        $registration = $this->registrationService->updateStatus($dto);
+
+        return $this->success("Status pendaftaran berhasil diubah", $registration);
     }
 }

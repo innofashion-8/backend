@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Data\EventFilterDTO;
 use App\Data\SaveDraftDTO;
 use App\Data\SubmitEventDTO;
+use App\Data\UpdateStatusDTO;
 use App\Enum\StatusRegistration;
 use App\Enum\UserType;
 use App\Models\Event;
@@ -222,5 +223,37 @@ class EventRegistrationService
 
             throw $e; 
         }
+    }
+
+    public function updateStatus(UpdateStatusDTO $dto)
+    {
+        $registration = $this->registration->with('user')
+                            ->where('id', $dto->registrationId)
+                            ->first();
+
+        if (!$registration) {
+            throw ValidationException::withMessages(['id' => ['Pendaftaran tidak ditemukan.']]);
+        }
+
+        if ($registration->status === StatusRegistration::VERIFIED) {
+            throw ValidationException::withMessages(['status' => ['Pendaftaran sudah terverifikasi sebelumnya.']]);
+        }
+
+        $registration->update([
+            'status' => StatusRegistration::from($dto->status),
+            'rejection_reason' => $dto->rejection_reason,
+        ]);
+
+        try {
+            if ($dto->status === StatusRegistration::VERIFIED->value) {
+                // Mail::to($registration->user->email)->queue(new RegistrationVerified($registration));
+            } elseif ($dto->status === StatusRegistration::REJECTED->value) {
+                // Mail::to($registration->user->email)->queue(new RegistrationRejected($registration, $dto->rejection_reason));
+            }
+        } catch (\Exception $e) {
+            Log::error("Gagal mengirim email status pendaftaran: " . $e->getMessage());
+        }
+
+        return $registration;
     }
 }

@@ -46,6 +46,8 @@ Route::middleware('auth:admin')->group(function() {
         Route::get('/users', [UserController::class, 'index']);
         Route::get('/users/{id}', [UserController::class, 'show']);
         Route::get('/registrations/competitions', [CompetitionRegistrationController::class, 'index']);
+        Route::post('/registrations/competitions/{id}/status', [CompetitionRegistrationController::class, 'updateStatus']);
         Route::get('/registrations/events', [EventRegistrationController::class, 'index']);
+        Route::post('/registrations/events/{id}/status', [EventRegistrationController::class, 'updateStatus']);
     });
 });
