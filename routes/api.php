@@ -6,6 +6,7 @@ use App\Http\Controllers\CompetitionController;
 use App\Http\Controllers\CompetitionRegistrationController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\EventRegistrationController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -28,6 +29,7 @@ Route::get('/competitions', [CompetitionController::class, 'index']);
 Route::get('/competitions/{key}', [CompetitionController::class, 'show']);
 
 Route::middleware('auth:user')->group(function () {
+    Route::get('/registrations', [UserController::class, 'getRegistrations']);
     Route::prefix('competitions')->group(function() {
         Route::post('/{key}/submit', [CompetitionRegistrationController::class, 'submitFinal']);
         Route::get('/{key}/status', [CompetitionRegistrationController::class, 'checkStatus']);
