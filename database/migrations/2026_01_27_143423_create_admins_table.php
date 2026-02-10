@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('admins', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name');
+            $table->string('nrp')->unique();
             $table->string('email')->unique();
             $table->uuid('division_id');
             $table->foreign('division_id')->references('id')->on('divisions');
