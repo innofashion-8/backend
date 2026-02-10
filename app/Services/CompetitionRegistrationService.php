@@ -251,7 +251,7 @@ class CompetitionRegistrationService
 
         $registration->update([
             'status' => StatusRegistration::from($dto->status),
-            'rejection_reason' => $dto->rejection_reason,
+            'rejection_reason' => $dto->status === StatusRegistration::REJECTED->value ? $dto->rejection_reason : null,
         ]);
 
         try {
