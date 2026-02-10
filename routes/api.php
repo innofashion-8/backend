@@ -45,5 +45,7 @@ Route::middleware('auth:admin')->group(function() {
     Route::prefix('admin')->group(function() {
         Route::get('/users', [UserController::class, 'index']);
         Route::get('/users/{id}', [UserController::class, 'show']);
+        Route::get('/registrations/competitions', [CompetitionRegistrationController::class, 'index']);
+        Route::get('/registrations/events', [EventRegistrationController::class, 'index']);
     });
 });

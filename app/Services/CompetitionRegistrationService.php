@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Data\CompetitionFilterDTO;
 use App\Data\SaveDraftDTO;
 use App\Data\SubmitCompetitionDTO;
 use App\Enum\StatusRegistration;
@@ -9,7 +10,9 @@ use App\Enum\UserType;
 use App\Models\Competition;
 use App\Models\CompetitionRegistration;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -39,6 +42,34 @@ class CompetitionRegistrationService
     {
         $this->registration = $registration;
     }
+
+    public function getAll(CompetitionFilterDTO $filters): LengthAwarePaginator
+    {
+        $query = $this->registration->query()
+            ->with(['user', 'competition']) 
+            ->latest();
+
+        if ($filters->competitionId) {
+            $query->where('competition_id', $filters->competitionId);
+        }
+
+        if ($filters->status) {
+            $query->where('status', $filters->status);
+        }
+
+        if ($filters->search) {
+            $search = $filters->search;
+            
+            $query->whereHas('user', function (Builder $q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('nrp', 'like', "%{$search}%");
+            });
+        }
+
+        return $query->paginate($filters->perPage)->withQueryString();
+    }
+
     public function saveDraft(SaveDraftDTO $dto): CompetitionRegistration
     {
         $registration = $this->registration->where('user_id', $dto->userId)

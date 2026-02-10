@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Data\CompetitionFilterDTO;
 use App\Data\SaveDraftDTO;
 use App\Enum\StatusRegistration;
 use App\Http\Requests\User\Register\SaveDraftRequest;
@@ -18,6 +19,13 @@ class CompetitionRegistrationController extends Controller
     public function __construct(CompetitionRegistrationService $competitionRegistrationService)
     {
         $this->registrationService = $competitionRegistrationService;
+    }
+
+    public function index(Request $request)
+    {
+        $filters = CompetitionFilterDTO::fromRequest($request);
+        $registrations = $this->registrationService->getAll($filters);
+        return $this->success("Data fetched successfully", $registrations);
     }
 
     public function checkStatus(Request $request, $key)

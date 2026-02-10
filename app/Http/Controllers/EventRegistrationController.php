@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Data\EventFilterDTO;
 use App\Data\SaveDraftDTO;
 use App\Enum\StatusRegistration;
 use App\Http\Requests\User\Register\SaveDraftRequest;
@@ -18,6 +19,13 @@ class EventRegistrationController extends Controller
     public function __construct(EventRegistrationService $registrationService)
     {
         $this->registrationService = $registrationService;
+    }
+
+    public function index(Request $request)
+    {
+        $filters = EventFilterDTO::fromRequest($request);
+        $registrations = $this->registrationService->getAll($filters);
+        return $this->success("Data fetched successfully", $registrations);
     }
 
     public function checkStatus(Request $request, $key)

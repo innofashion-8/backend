@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Data\EventFilterDTO;
 use App\Data\SaveDraftDTO;
 use App\Data\SubmitEventDTO;
 use App\Enum\StatusRegistration;
@@ -38,6 +39,30 @@ class EventRegistrationService
         }
 
         return $event;
+    }
+
+    public function getAll(EventFilterDTO $filter)
+    {
+        $query = $this->registration->query()
+            ->with(['user', 'event'])
+            ->latest();
+
+        if ($filter->eventId) {
+            $query->where('event_id', $filter->eventId);
+        }
+
+        if ($filter->status) {
+            $query->where('status', $filter->status);
+        }
+
+        if ($filter->search) {
+            $query->whereHas('user', function ($q) use ($filter) {
+                $q->where('name', 'like', '%' . $filter->search . '%')
+                  ->orWhere('email', 'like', '%' . $filter->search . '%');
+            });
+        }
+
+        return $query->paginate($filter->perPage)->withQueryString();
     }
 
     public function saveDraft(SaveDraftDTO $dto): EventRegistration
@@ -168,7 +193,7 @@ class EventRegistrationService
                     'quota' => ['Mohon maaf, kuota pendaftaran untuk event ini sudah penuh.']
                 ]);
             }
-            
+
             $registration->update([
                 'status' => StatusRegistration::PENDING,
                 'draft_data' => null,
