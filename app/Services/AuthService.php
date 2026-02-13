@@ -125,6 +125,27 @@ class AuthService
         ];
     }
 
+    public function profile($user)
+    {
+        if ($user instanceof Admin) {
+            $user->load('division');
+            $data = [
+                'name'       => $user->name,
+                'email'      => $user->email,
+                'division'   => $user->division,
+                'roles'      => $user->getRoleNames()->first(),
+                'permissions'=> $user->getAllPermissions()->pluck('name'),
+            ];
+            return $data;
+        }
+
+        if ($user instanceof User) {
+            $user->load(['eventRegistrations', 'competitionRegistrations']);
+            return $user;
+        }
+        return null;
+    }
+
     public function logout($user)
     {
         $user->currentAccessToken()->delete();

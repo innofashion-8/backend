@@ -72,6 +72,7 @@ class AuthController extends Controller
 
     public function profile(Request $request)
     {
-        return $this->success("Data User", $request->user());
+        $user = $this->authService->profile($request->user());
+        return $this->success("Data User", $user);
     }
 }
