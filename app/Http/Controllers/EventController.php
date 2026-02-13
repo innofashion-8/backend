@@ -66,7 +66,7 @@ class EventController extends Controller
         return $this->success(
             "Event berhasil dihapus",
             null,
-            HttpResponseCode::HTTP_NO_CONTENT
+            HttpResponseCode::HTTP_OK
         );
     }
 }
