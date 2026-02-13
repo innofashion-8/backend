@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Admin;
 use App\Models\Division;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class AdminSeeder extends Seeder
@@ -21,6 +20,12 @@ class AdminSeeder extends Seeder
                 'nrp' => 'C14240069',
                 'email' => 'c14240069@john.petra.ac.id',
                 'division_slug' => 'it',
+            ],
+            [
+                'name' => 'Clarence Evan Wijaya',
+                'nrp' => 'C14240000',
+                'email' => 'clarenceevan0907@gmail.com',
+                'division_slug' => 'sekret',
             ],
         ];
 
