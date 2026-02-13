@@ -18,12 +18,12 @@ class UserService
 
     public function getUsers(): Collection
     {
-        return $this->user->latest()->get();
+        return $this->user->with(['eventRegistrations', 'competitionRegistrations'])->latest()->get();
     }
 
     public function getUser(string $id): ?User
     {
-        return $this->user->find($id);
+        return $this->user->with(['eventRegistrations', 'competitionRegistrations'])->find($id);
     }
 
     public function getRegistrations(string $userId): array
