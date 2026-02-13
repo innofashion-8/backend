@@ -115,6 +115,8 @@ class AuthService
             ]);
         }
 
+        $admin->syncRoleByDivision();
+
         $token = $admin->createToken('ADMIN_TOKEN', ['*'], now()->addDay())->plainTextToken;
 
         return [

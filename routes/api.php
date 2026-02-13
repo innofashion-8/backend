@@ -43,11 +43,28 @@ Route::middleware('auth:user')->group(function () {
 
 Route::middleware('auth:admin')->group(function() {
     Route::prefix('admin')->group(function() {
-        Route::get('/users', [UserController::class, 'index']);
-        Route::get('/users/{id}', [UserController::class, 'show']);
-        Route::get('/registrations/competitions', [CompetitionRegistrationController::class, 'index']);
-        Route::post('/registrations/competitions/{id}/status', [CompetitionRegistrationController::class, 'updateStatus']);
-        Route::get('/registrations/events', [EventRegistrationController::class, 'index']);
-        Route::post('/registrations/events/{id}/status', [EventRegistrationController::class, 'updateStatus']);
+        Route::middleware(['permission:manage_users'])->group(function() {
+            Route::get('/users', [UserController::class, 'index']);
+            Route::get('/users/{id}', [UserController::class, 'show']);
+        });
+
+        Route::middleware(['permission:manage_registrations'])->group(function() {
+            Route::get('/registrations/competitions', [CompetitionRegistrationController::class, 'index']);
+            Route::patch('/registrations/competitions/{id}/status', [CompetitionRegistrationController::class, 'updateStatus']);
+            Route::get('/registrations/events', [EventRegistrationController::class, 'index']);
+            Route::patch('/registrations/events/{id}/status', [EventRegistrationController::class, 'updateStatus']);
+        });
+
+        Route::middleware(['permission:manage_events'])->prefix('events')->group(function() {
+            Route::post('/', [EventController::class, 'store']);
+            Route::put('/{key}', [EventController::class, 'update']);  
+            Route::delete('/{key}', [EventController::class, 'destroy']);
+        });
+
+        Route::middleware(['permission:manage_competitions'])->prefix('competitions')->group(function() {
+            Route::post('/', [CompetitionController::class, 'store']);
+            Route::put('/{key}', [CompetitionController::class, 'update']);
+            Route::delete('/{key}', [CompetitionController::class, 'destroy']);
+        });
     });
 });

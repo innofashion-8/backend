@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Event\SaveEventRequest;
+use App\Http\Resources\EventResource;
 use App\Services\EventService;
 use App\Utils\HttpResponseCode;
 
@@ -28,6 +30,43 @@ class EventController extends Controller
             "Detail Event berhasil diambil", 
             $event,
             HttpResponseCode::HTTP_OK
+        );
+    }
+
+    public function store(SaveEventRequest $request)
+    {
+        $eventDTO = $request->toDTO();
+        $event = $this->eventService->createEvent($eventDTO);
+
+        return $this->success(
+            "Event berhasil dibuat",
+            new EventResource($event),
+            HttpResponseCode::HTTP_CREATED
+        );
+    }
+
+    public function update(SaveEventRequest $request, string $key)
+    {
+        $event = $this->eventService->getEventByKey($key);
+        $eventDTO = $request->toDTO();
+        $event = $this->eventService->updateEvent($event, $eventDTO);
+
+        return $this->success(
+            "Event berhasil diperbarui",
+            new EventResource($event),
+            HttpResponseCode::HTTP_OK
+        );
+    }
+
+    public function destroy(string $key)
+    {
+        $event = $this->eventService->getEventByKey($key);
+        $this->eventService->delete($event);
+
+        return $this->success(
+            "Event berhasil dihapus",
+            null,
+            HttpResponseCode::HTTP_NO_CONTENT
         );
     }
 }
