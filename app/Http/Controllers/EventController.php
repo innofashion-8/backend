@@ -19,7 +19,7 @@ class EventController extends Controller
     public function index()
     {
         $events = $this->eventService->getEvents();
-        return $this->success("List Event berhasil diambil", new EventResource($events), HttpResponseCode::HTTP_OK);
+        return $this->success("List Event berhasil diambil", $events, HttpResponseCode::HTTP_OK);
     }
 
     public function show(string $key)
