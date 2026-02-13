@@ -56,6 +56,8 @@ class AuthController extends Controller
                 'name'     => $result['admin']->name,
                 'email'    => $result['admin']->email,
                 'division' => $result['admin']->division->name ?? null,
+                'roles'    => $result['admin']->getRoleNames()->first(),
+                'permissions' => $result['admin']->getAllPermissions()->pluck('name'),
             ]
         ];
         return $this->success("Login Admin Berhasil", $responseData);
