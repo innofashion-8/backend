@@ -7,7 +7,7 @@ class SaveDraftDTO
     public function __construct(
         public readonly string $userId,
         public readonly string $activityId,
-        public readonly array $draftData
+        public readonly array $draftData = [],
     )
     {}
 }

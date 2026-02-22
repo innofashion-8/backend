@@ -46,6 +46,7 @@ class UpdateStatusRequest extends FormRequest
     {
         $data = $this->validated();
         return new UpdateStatusDTO(
+            verifiedBy: $this->user()->id,
             registrationId: $id,
             status: $data['status'],
             rejection_reason: $data['rejection_reason'] ?? null

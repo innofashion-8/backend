@@ -10,7 +10,6 @@ use App\Enum\StatusRegistration;
 use App\Enum\UserType;
 use App\Models\Competition;
 use App\Models\CompetitionRegistration;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -115,22 +114,22 @@ class CompetitionRegistrationService
         }
 
         $draft = $registration->draft_data ?? [];
-        $user  = $registration->user;
+        // $user  = $registration->user;
 
-        $isInternal = $user->type === UserType::INTERNAL;
-        $isExternal = $user->type === UserType::EXTERNAL;
+        // // $isInternal = $user->type === UserType::INTERNAL;
+        // // $isExternal = $user->type === UserType::EXTERNAL;
 
-        $finalNrp   = $isInternal ? ($dto->nrp ?? $user->nrp) : null;
-        $finalBatch = $isInternal ? ($dto->batch ?? $user->batch) : null;
+        // // $finalNrp   = $isInternal ? ($dto->nrp ?? $user->nrp) : null;
+        // // $finalBatch = $isInternal ? ($dto->batch ?? $user->batch) : null;
 
-        if ($isInternal) {
-            if (empty($finalNrp)) {
-                throw ValidationException::withMessages(['nrp' => ['NRP wajib diisi (tidak ditemukan di input maupun profil).']]);
-            }
-            if (empty($finalBatch)) {
-                throw ValidationException::withMessages(['batch' => ['Angkatan wajib diisi.']]);
-            }
-        }
+        // // if ($isInternal) {
+        // //     if (empty($finalNrp)) {
+        // //         throw ValidationException::withMessages(['nrp' => ['NRP wajib diisi (tidak ditemukan di input maupun profil).']]);
+        // //     }
+        // //     if (empty($finalBatch)) {
+        // //         throw ValidationException::withMessages(['batch' => ['Angkatan wajib diisi.']]);
+        // //     }
+        // // }
 
         $rollbackActions = [];
 
@@ -188,15 +187,15 @@ class CompetitionRegistrationService
         $finalPayment = $processFile($dto->paymentProof, $draft['payment_proof'] ?? null, null, 'payments');
         if (!$finalPayment) throw ValidationException::withMessages(['payment_proof' => ['Bukti pembayaran wajib diupload.']]);
 
-        $finalKtm = $isInternal ? $processFile($dto->ktmPath, $draft['ktm_path'] ?? null, $user->ktm_path, 'ktm') : null;
-        if ($isInternal && !$finalKtm) { 
-             throw ValidationException::withMessages(['ktm_path' => ['Mahasiswa Internal wajib upload KTM.']]);
-        }
+        // $finalKtm = $isInternal ? $processFile($dto->ktmPath, $draft['ktm_path'] ?? null, $user->ktm_path, 'ktm') : null;
+        // if ($isInternal && !$finalKtm) { 
+        //      throw ValidationException::withMessages(['ktm_path' => ['Mahasiswa Internal wajib upload KTM.']]);
+        // }
 
-        $finalIdCard = $isExternal ? $processFile($dto->idCardPath, $draft['id_card_path'] ?? null, $user->id_card_path, 'id_card') : null;
-        if ($isExternal && !$finalIdCard) {
-            throw ValidationException::withMessages(['id_card_path' => ['Peserta Eksternal wajib upload Kartu Identitas.']]);
-        }
+        // $finalIdCard = $isExternal ? $processFile($dto->idCardPath, $draft['id_card_path'] ?? null, $user->id_card_path, 'id_card') : null;
+        // if ($isExternal && !$finalIdCard) {
+        //     throw ValidationException::withMessages(['id_card_path' => ['Peserta Eksternal wajib upload Kartu Identitas.']]);
+        // }
 
 
         DB::beginTransaction();
@@ -208,13 +207,11 @@ class CompetitionRegistrationService
                 'draft_data'    => null, 
             ]);
 
-            $user->update([
-                'nrp'          => $finalNrp,
-                'batch'        => $finalBatch,
-                'major'        => $dto->major ?? $user->major,
-                'ktm_path'     => $finalKtm,
-                'id_card_path' => $finalIdCard,
-            ]);
+            // $user->update([
+            //     'nrp'          => $finalNrp,
+            //     'batch'        => $finalBatch,
+            //     'major'        => $dto->major ?? $user->major
+            // ]);
 
             DB::commit();
 
@@ -250,6 +247,7 @@ class CompetitionRegistrationService
         }
 
         $registration->update([
+            'verified_by' => $dto->verifiedBy,
             'status' => StatusRegistration::from($dto->status),
             'rejection_reason' => $dto->status === StatusRegistration::REJECTED->value ? $dto->rejection_reason : null,
         ]);

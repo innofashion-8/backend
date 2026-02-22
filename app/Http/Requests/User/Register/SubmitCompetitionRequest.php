@@ -23,13 +23,13 @@ class SubmitCompetitionRequest extends ApiRequest
         return [
             'payment_proof' => ['nullable', 'file', 'mimes:jpg,jpeg,png', 'max:2048'],
 
-            'nrp'           => ['nullable', 'string', 'max:20', 
-                                Rule::unique('users', 'nrp')->ignore($user->id)],
-            'batch'         => ['nullable', 'integer', 'min:2018', 'max:' . date('Y')],
-            'major'         => ['required', 'string'],
+            // 'nrp'           => ['nullable', 'string', 'max:20', 
+            //                     Rule::unique('users', 'nrp')->ignore($user->id)],
+            // 'batch'         => ['nullable', 'integer', 'min:2018', 'max:' . date('Y')],
+            // 'major'         => ['required', 'string'],
 
-            'ktm_path'      => ['nullable', 'file', 'mimes:jpg,jpeg,png', 'max:2048'],
-            'id_card_path'  => ['nullable', 'file', 'mimes:jpg,jpeg,png', 'max:2048'],
+            // 'ktm_path'      => ['nullable', 'file', 'mimes:jpg,jpeg,png', 'max:2048'],
+            // 'id_card_path'  => ['nullable', 'file', 'mimes:jpg,jpeg,png', 'max:2048'],
         ];
     }
 
@@ -37,8 +37,8 @@ class SubmitCompetitionRequest extends ApiRequest
         string $userId, 
         string $competitionId, 
         ?string $uploadedPaymentPath = null, 
-        ?string $uploadedKtmPath = null, 
-        ?string $uploadedIdCardPath = null
+        // ?string $uploadedKtmPath = null, 
+        // ?string $uploadedIdCardPath = null
     ): SubmitCompetitionDTO
     {
         $data = $this->validated();
@@ -49,12 +49,12 @@ class SubmitCompetitionRequest extends ApiRequest
             
             paymentProof: $uploadedPaymentPath, 
             
-            nrp: $data['nrp'] ?? null,
-            batch: $data['batch'] ?? null,
-            major: $data['major'] ?? null,
+            // nrp: $data['nrp'] ?? null,
+            // batch: $data['batch'] ?? null,
+            // major: $data['major'] ?? null,
             
-            ktmPath: $uploadedKtmPath,
-            idCardPath: $uploadedIdCardPath,
+            // ktmPath: $uploadedKtmPath,
+            // idCardPath: $uploadedIdCardPath,
         );
     }
 }

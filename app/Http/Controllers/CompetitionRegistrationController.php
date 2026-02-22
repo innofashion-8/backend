@@ -8,7 +8,6 @@ use App\Enum\StatusRegistration;
 use App\Http\Requests\Admin\UpdateStatusRequest;
 use App\Http\Requests\User\Register\SaveDraftRequest;
 use App\Http\Requests\User\Register\SubmitCompetitionRequest;
-use App\Models\CompetitionRegistration;
 use App\Services\CompetitionRegistrationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -67,36 +66,54 @@ class CompetitionRegistrationController extends Controller
     {
         $competition = $this->registrationService->findCompetition($key);
 
-        $payload = $request->validated()['draft_data'];
-
-        $fileFields = [
-            'payment_proof' => 'payments/draft', 
-            'ktm_path'      => 'ktm/draft', 
-            'id_card_path'  => 'id/draft', 
-        ];
-
+        $payload = $request->validated()['draft_data'] ?? [];
+        
         $existingDraft = $this->registrationService->getDraft($request->user()->id, $competition->id);
-
-        foreach ($fileFields as $field => $folder) {
-            $requestKey = "draft_data.{$field}";
-
-            if ($request->hasFile($requestKey)) {
-                if ($existingDraft && isset($existingDraft->draft_data[$field])) {
-                    $oldPath = $existingDraft->draft_data[$field];
-                    if (Storage::disk('public')->exists($oldPath)) {
-                        Storage::disk('public')->delete($oldPath);
-                    }
-                }
-                $path = $request->file($requestKey)->store($folder, 'public');
-                $payload[$field] = $path;
-            } else {
-                if ($existingDraft && isset($existingDraft->draft_data[$field])) {
-                    $payload[$field] = $existingDraft->draft_data[$field];
-                } else {
-                    $payload[$field] = null;
+        if ($request->hasFile("draft_data.payment_proof")) {
+            if ($existingDraft && isset($existingDraft->draft_data['payment_proof'])){
+                $oldPath = $existingDraft->draft_data['payment_proof'];
+                if (Storage::disk('public')->exists($oldPath)) {
+                    Storage::disk('public')->delete($oldPath);
                 }
             }
+            $path = $request->file("draft_data.payment_proof")->store('payments/draft', 'public');
+            $payload['payment_proof'] = $path;
+        } else {
+            if ($existingDraft && isset($existingDraft->draft_data['payment_proof'])){
+                $payload['payment_proof'] = $existingDraft->draft_data['payment_proof'];
+            } else {
+                $payload['payment_proof'] = null;
+            }
         }
+
+        // $fileFields = [
+        //     'payment_proof' => 'payments/draft', 
+        //     'ktm_path'      => 'ktm/draft', 
+        //     'id_card_path'  => 'id/draft', 
+        // ];
+
+        // $existingDraft = $this->registrationService->getDraft($request->user()->id, $competition->id);
+
+        // foreach ($fileFields as $field => $folder) {
+        //     $requestKey = "draft_data.{$field}";
+
+        //     if ($request->hasFile($requestKey)) {
+        //         if ($existingDraft && isset($existingDraft->draft_data[$field])) {
+        //             $oldPath = $existingDraft->draft_data[$field];
+        //             if (Storage::disk('public')->exists($oldPath)) {
+        //                 Storage::disk('public')->delete($oldPath);
+        //             }
+        //         }
+        //         $path = $request->file($requestKey)->store($folder, 'public');
+        //         $payload[$field] = $path;
+        //     } else {
+        //         if ($existingDraft && isset($existingDraft->draft_data[$field])) {
+        //             $payload[$field] = $existingDraft->draft_data[$field];
+        //         } else {
+        //             $payload[$field] = null;
+        //         }
+        //     }
+        // }
 
         $dto = new SaveDraftDTO(
             userId: $request->user()->id,
@@ -121,20 +138,20 @@ class CompetitionRegistrationController extends Controller
             $paymentPath = $request->file('payment_proof')->store('payments', 'public');
         }
 
-        if ($request->hasFile('ktm_path')) {
-            $ktmPath = $request->file('ktm_path')->store('ktm', 'public');
-        }
+        // if ($request->hasFile('ktm_path')) {
+        //     $ktmPath = $request->file('ktm_path')->store('ktm', 'public');
+        // }
         
-        if ($request->hasFile('id_card_path')) {
-            $idCardPath = $request->file('id_card_path')->store('id_card', 'public');
-        }
+        // if ($request->hasFile('id_card_path')) {
+        //     $idCardPath = $request->file('id_card_path')->store('id_card', 'public');
+        // }
 
         $dto = $request->toDTO(
             $request->user()->id,
             $competition->id,
             $paymentPath,
-            $ktmPath,
-            $idCardPath
+            // $ktmPath,
+            // $idCardPath
         );
 
         $registration = $this->registrationService->submitFinal($dto);

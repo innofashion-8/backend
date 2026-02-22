@@ -4,7 +4,6 @@ namespace App\Http\Requests\User\Register;
 
 use App\Data\SaveDraftDTO;
 use App\Http\Requests\ApiRequest;
-use Illuminate\Foundation\Http\FormRequest;
 
 class SaveDraftRequest extends ApiRequest
 {
@@ -24,7 +23,7 @@ class SaveDraftRequest extends ApiRequest
     public function rules(): array
     {
         return [
-            'draft_data' => 'required|array',
+            'draft_data' => 'nullable|array',
             'draft_data.payment_proof' => [
                 'nullable', 
                 'file',                 
@@ -33,22 +32,22 @@ class SaveDraftRequest extends ApiRequest
             ],
 
             // Validasi File: KTM
-            'draft_data.ktm_path' => [
-                'nullable', 
-                'file', 
-                'mimes:jpg,jpeg,png',
-                'max:2048'
-            ],
+            // 'draft_data.ktm_path' => [
+            //     'nullable', 
+            //     'file', 
+            //     'mimes:jpg,jpeg,png',
+            //     'max:2048'
+            // ],
 
-            'draft_data.id_card_path' => [
-                'nullable', 
-                'file', 
-                'mimes:jpg,jpeg,png', 
-                'max:2048'
-            ],
-            'draft_data.nrp'       => 'nullable|string|max:50',
-            'draft_data.major'     => 'nullable|string|max:100',
-            'draft_data.batch'     => 'nullable|integer|min:2018|max:' . date('Y'),
+            // 'draft_data.id_card_path' => [
+            //     'nullable', 
+            //     'file', 
+            //     'mimes:jpg,jpeg,png', 
+            //     'max:2048'
+            // ],
+            // 'draft_data.nrp'       => 'nullable|string|max:50',
+            // 'draft_data.major'     => 'nullable|string|max:100',
+            // 'draft_data.batch'     => 'nullable|integer|min:2018|max:' . date('Y'),
         ];
     }
 

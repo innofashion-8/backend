@@ -25,15 +25,14 @@ class SubmitEventRequest extends FormRequest
     public function rules(): array
     {
         $user = $this->user();
-        $isInternal = $user->type === UserType::INTERNAL;
 
         return [
             'payment_proof' => ['nullable', 'file', 'mimes:jpg,jpeg,png', 'max:2048'],
 
-            'nrp'           => ['nullable', 'string', 'max:20', 
-                                Rule::unique('users', 'nrp')->ignore($user->id)],
-            'batch'         => ['nullable', 'integer', 'min:2018', 'max:' . date('Y')],
-            'major'         => ['required', 'string'],
+            // 'nrp'           => ['nullable', 'string', 'max:20', 
+            //                     Rule::unique('users', 'nrp')->ignore($user->id)],
+            // 'batch'         => ['nullable', 'integer', 'min:2018', 'max:' . date('Y')],
+            // 'major'         => ['required', 'string'],
         ];
     }
 
@@ -51,9 +50,9 @@ class SubmitEventRequest extends FormRequest
             
             paymentProof: $uploadedPaymentPath, 
             
-            nrp: $data['nrp'] ?? null,
-            batch: $data['batch'] ?? null,
-            major: $data['major'] ?? null,
+            // nrp: $data['nrp'] ?? null,
+            // batch: $data['batch'] ?? null,
+            // major: $data['major'] ?? null,
         );
     }
 }

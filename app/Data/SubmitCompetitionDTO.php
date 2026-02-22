@@ -9,11 +9,11 @@ class SubmitCompetitionDTO
         public readonly string $competitionId,
         public readonly ?string $paymentProof,
         
-        public readonly ?string $nrp,
-        public readonly ?int $batch,
-        public readonly ?string $major,
-        public readonly ?string $ktmPath,
-        public readonly ?string $idCardPath,
+        // public readonly ?string $nrp,
+        // public readonly ?int $batch,
+        // public readonly ?string $major,
+        // public readonly ?string $ktmPath,
+        // public readonly ?string $idCardPath,
         
     ) {}
 }

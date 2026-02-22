@@ -66,7 +66,7 @@ class EventRegistrationController extends Controller
     public function saveDraft(SaveDraftRequest $request, $key)
     {
         $event = $this->registrationService->findEvent($key);
-        $payload = $request->validated()['draft_data'];
+        $payload = $request->validated()['draft_data'] ?? [];
 
         $existingDraft = $this->registrationService->getDraft($request->user()->id, $event->id);
         if ($request->hasFile("draft_data.payment_proof")) {

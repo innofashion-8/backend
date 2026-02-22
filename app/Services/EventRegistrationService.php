@@ -109,21 +109,21 @@ class EventRegistrationService
 
         $draft = $registration->draft_data ?? [];
 
-        $user = $registration->user;
+        // $user = $registration->user;
 
-        $isInternal = $user->type === UserType::INTERNAL;
+        // $isInternal = $user->type === UserType::INTERNAL;
 
-        $finalNrp   = $isInternal ? ($dto->nrp ?? $user->nrp) : null;
-        $finalBatch = $isInternal ? ($dto->batch ?? $user->batch) : null;
+        // $finalNrp   = $isInternal ? ($dto->nrp ?? $user->nrp) : null;
+        // $finalBatch = $isInternal ? ($dto->batch ?? $user->batch) : null;
 
-        if ($isInternal) {
-            if (empty($finalNrp)) {
-                throw ValidationException::withMessages(['nrp' => ['NRP wajib diisi (tidak ditemukan di input maupun profil).']]);
-            }
-            if (empty($finalBatch)) {
-                throw ValidationException::withMessages(['batch' => ['Angkatan wajib diisi.']]);
-            }
-        }
+        // if ($isInternal) {
+        //     if (empty($finalNrp)) {
+        //         throw ValidationException::withMessages(['nrp' => ['NRP wajib diisi (tidak ditemukan di input maupun profil).']]);
+        //     }
+        //     if (empty($finalBatch)) {
+        //         throw ValidationException::withMessages(['batch' => ['Angkatan wajib diisi.']]);
+        //     }
+        // }
 
         $rollbackActions = [];
 
@@ -178,8 +178,11 @@ class EventRegistrationService
             return null;
         };
 
+        $event = $this->findEvent($dto->eventId);
+        $isFree = $event->price == 0;
+
         $finalPayment = $processFile($dto->paymentProof, $draft['payment_proof'] ?? null, null, 'payments');
-        if (!$finalPayment) throw ValidationException::withMessages(['payment_proof' => ['Bukti pembayaran wajib diupload.']]);
+        if (!$isFree && !$finalPayment) throw ValidationException::withMessages(['payment_proof' => ['Bukti pembayaran wajib diupload.']]);
 
         DB::beginTransaction();
         try {
@@ -201,11 +204,11 @@ class EventRegistrationService
                 'payment_proof' => $finalPayment,
             ]);
 
-            $user->update([
-                'nrp'          => $finalNrp,
-                'batch'        => $finalBatch,
-                'major'        => $dto->major ?? $user->major,
-            ]);
+            // $user->update([
+            //     'nrp'          => $finalNrp,
+            //     'batch'        => $finalBatch,
+            //     'major'        => $dto->major ?? $user->major,
+            // ]);
 
             DB::commit();
 
@@ -240,6 +243,7 @@ class EventRegistrationService
         }
 
         $registration->update([
+            'verified_by' => $dto->verifiedBy,
             'status' => StatusRegistration::from($dto->status),
             'rejection_reason' => $dto->status === StatusRegistration::REJECTED->value ? $dto->rejection_reason : null,
         ]);
