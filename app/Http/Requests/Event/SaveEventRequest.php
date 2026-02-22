@@ -32,7 +32,7 @@ class SaveEventRequest extends ApiRequest
             'description' => 'nullable|string',
             'price'       => 'required|integer|min:0',
             'quota'       => 'required|integer|min:1',
-            'start_time'  => 'required|date_format:Y-m-d H:i:s',
+            'start_time'  => 'required|date',
             'is_active'   => 'sometimes|boolean',
         ];
     }
