@@ -21,7 +21,6 @@ class AuthController extends Controller
     {
         $result = $this->authService->register($request->toDTO());
         $responseData = [
-            'token' => $result['token'],
             'user'  => $result['user']
         ];
         return $this->success("Registrasi Berhasil !", $responseData);

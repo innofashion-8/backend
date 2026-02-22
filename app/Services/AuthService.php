@@ -33,11 +33,8 @@ class AuthService
             'line_id'     => $data->line,
         ]);
 
-        $token = $user->createToken('USER_TOKEN')->plainTextToken;
-
         return [
             'user'  => $user,
-            'token' => $token
         ];
     }
 
