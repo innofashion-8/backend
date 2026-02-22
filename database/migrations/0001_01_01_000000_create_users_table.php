@@ -30,6 +30,8 @@ return new class extends Migration
             $table->string('id_card_path')->nullable();
             $table->string('phone')->unique();
             $table->string('line')->nullable();
+
+            $table->json('draft_data')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

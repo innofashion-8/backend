@@ -28,6 +28,7 @@ class User extends Authenticatable
         'id_card_path',
         'phone',
         'line',
+        'draft_data',
     ];
 
     protected $hidden = [
@@ -46,6 +47,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'type' => UserType::class,
+            'draft_data' => 'array',
         ];
     }
 

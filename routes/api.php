@@ -27,6 +27,8 @@ Route::get('/competitions', [CompetitionController::class, 'index']);
 Route::get('/competitions/{key}', [CompetitionController::class, 'show']);
 
 Route::middleware('auth:user')->group(function () {
+    Route::post('/profile/draft', [UserController::class, 'saveDraft']);
+    Route::post('/profile/submit', [UserController::class, 'submitProfile']);
     Route::get('/registrations', [UserController::class, 'getRegistrations']);
     Route::prefix('competitions')->group(function() {
         Route::post('/{key}/submit', [CompetitionRegistrationController::class, 'submitFinal']);
