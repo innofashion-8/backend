@@ -82,4 +82,24 @@ class UserController extends Controller
         $user = $this->userService->completeProfile($request->toDTO());
         return $this->success("Profile berhasil diupdate", $user);
     }
+
+    public function checkStatus(Request $request)
+    {
+        $user = $request->user();
+
+        $isCompleted = !is_null($user->major); 
+
+        $draftData = $user->draft_data ?? (object)[];
+
+        return $this->success("Status profile fetched", [
+            'is_completed' => $isCompleted,
+            'draft_data'   => $draftData,
+            'profile_data' => $isCompleted ? [
+                'major'    => $user->major,
+                'nrp'      => $user->nrp,
+                'ktm_path' => $user->ktm_path,
+                'id_card_path' => $user->id_card_path,
+            ] : null
+        ]);
+    }
 }
