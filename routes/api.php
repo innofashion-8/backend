@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompetitionController;
 use App\Http\Controllers\CompetitionRegistrationController;
@@ -46,6 +47,7 @@ Route::middleware('auth:user')->group(function () {
 
 Route::middleware('auth:admin')->group(function() {
     Route::prefix('admin')->group(function() {
+        Route::get('/dashboard/stats', [DashboardController::class, 'getStats']);
         Route::middleware(['permission:manage_users'])->group(function() {
             Route::get('/users', [UserController::class, 'index']);
             Route::get('/users/{id}', [UserController::class, 'show']);
