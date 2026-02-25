@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Data\EventDTO;
+use App\Http\Resources\EventResource;
 use App\Models\Event;
 use Illuminate\Support\Str;
 
@@ -28,9 +29,10 @@ class EventService
 
     public function getEvents()
     {
-        return $this->event->where('is_active', true)
+        $events = $this->event->where('is_active', true)
                     ->orderBy('start_time', 'asc')
                     ->get();
+        return EventResource::collection($events);
     }
 
     public function createEvent(EventDTO $dto)

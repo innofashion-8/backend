@@ -21,6 +21,8 @@ class Event extends Model
     ];
 
     protected $casts = [
+        'price' => 'integer',
+        'quota' => 'integer',
         'category' => EventCategory::class,
         'start_time' => 'datetime',
         'is_active' => 'boolean',

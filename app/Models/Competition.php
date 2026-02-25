@@ -21,7 +21,7 @@ class Competition extends Model
 
     protected $casts = [
         'category' => CompetitionCategory::class,
-        'registration_fee' => 'decimal:2',
+        'registration_fee' => 'integer',
         'is_active' => 'boolean',
     ];
 
