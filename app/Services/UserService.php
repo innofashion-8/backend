@@ -9,6 +9,7 @@ use App\Models\CompetitionRegistration;
 use App\Models\EventRegistration;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -23,9 +24,9 @@ class UserService
         $this->user = $user;
     }
 
-    public function getUsers(): Collection
+    public function getUsers(): LengthAwarePaginator
     {
-        return $this->user->with(['eventRegistrations.event', 'competitionRegistrations.competition'])->latest()->get();
+        return $this->user->with(['eventRegistrations.event', 'competitionRegistrations.competition'])->latest()->paginate(10)->withQueryString();
     }
 
     public function getUser(string $id): ?User
