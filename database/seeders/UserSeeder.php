@@ -16,19 +16,17 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         $user = [
-            [
-                'name'        => 'John Petra',
-                'email'       => 'c14240069@john.petra.ac.id',
-                'password'    => Hash::make('password'),
-                'type'        => UserType::INTERNAL,
-                'institution' => 'Petra Christian University',
-                'phone'       => '081234567890',
-                'line'     => 'john.petra',
-            ],
+            // [
+            //     'name'        => 'John Petra',
+            //     'email'       => 'c14240069@john.petra.ac.id',
+            //     'type'        => UserType::INTERNAL,
+            //     'institution' => 'Petra Christian University',
+            //     'phone'       => '081234567890',
+            //     'line'     => 'john.petra',
+            // ],
             [
                 'name'        => 'Jane Ciputra',
                 'email'       => 'jane@student.ciputra.ac.id',
-                'password'    => Hash::make('password'),
                 'type'        => UserType::EXTERNAL,
                 'institution' => 'Universitas Ciputra',
                 'phone'       => '089876543210',
@@ -37,7 +35,6 @@ class UserSeeder extends Seeder
             [
                 'name'        => 'Budi Highschool',
                 'email'       => 'budi@gmail.com',
-                'password'    => Hash::make('password'),
                 'type'        => UserType::EXTERNAL,
                 'institution' => 'SMA Negeri 5 Surabaya',
                 'phone'       => '085555555555',

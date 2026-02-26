@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Data\ProfileDraftDTO;
-use App\Http\Requests\User\CompleteProfileRequest;
-use App\Http\Requests\User\DraftProfileRequest;
+use App\Http\Requests\User\CompleteRegisterRequest;
+use App\Http\Requests\User\DraftRegisterRequest;
 use App\Services\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -37,7 +37,7 @@ class UserController extends Controller
         return $this->success("Registrasi berhasil diambil", $registrations);
     }
     
-    public function saveDraft(DraftProfileRequest $request)
+    public function saveDraft(DraftRegisterRequest $request)
     {
         $payload = $request->validated()['draft_data'];
         $fileFields = [
@@ -77,9 +77,9 @@ class UserController extends Controller
         return $this->success("Draft berhasil disimpan", $user);
     }
 
-    public function submitProfile(CompleteProfileRequest $request)
+    public function submitRegister(CompleteRegisterRequest $request)
     {
-        $user = $this->userService->completeProfile($request->toDTO());
+        $user = $this->userService->completeRegister($request->toDTO());
         return $this->success("Profile berhasil diupdate", $user);
     }
 
@@ -87,7 +87,7 @@ class UserController extends Controller
     {
         $user = $request->user();
 
-        $isCompleted = !is_null($user->major); 
+        $isCompleted = (bool) ($user->is_profile_complete); 
 
         $draftData = $user->draft_data ?? (object)[];
 
@@ -95,9 +95,14 @@ class UserController extends Controller
             'is_completed' => $isCompleted,
             'draft_data'   => $draftData,
             'profile_data' => $isCompleted ? [
-                'major'    => $user->major,
-                'nrp'      => $user->nrp,
-                'ktm_path' => $user->ktm_path,
+                'type'         => $user->type,
+                'phone'        => $user->phone, 
+                'line'         => $user->line,
+                'institution'  => $user->institution,
+                'major'        => $user->major,
+                'nrp'          => $user->nrp,
+                'batch'        => $user->batch,
+                'ktm_path'     => $user->ktm_path,
                 'id_card_path' => $user->id_card_path,
             ] : null
         ]);

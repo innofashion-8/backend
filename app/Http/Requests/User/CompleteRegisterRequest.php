@@ -2,12 +2,11 @@
 
 namespace App\Http\Requests\User;
 
-use App\Data\CompleteProfileDTO;
+use App\Data\CompleteRegisterDTO;
 use App\Enum\UserType;
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
+use App\Http\Requests\ApiRequest;
 
-class CompleteProfileRequest extends FormRequest
+class CompleteRegisterRequest extends ApiRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -33,6 +32,18 @@ class CompleteProfileRequest extends FormRequest
         $hasIdCard = !empty($user->id_card_path) || !empty($draft['id_card_path']);
 
         $rules = [
+            'institution' => 'required|string|max:100',
+            'phone'       => [
+                'required', 
+                'string', 
+                'regex:/^(\+62|62|0)8[1-9][0-9]{6,11}$/',
+                'unique:users,phone'
+            ],
+            'line'     => [
+                'nullable', 
+                'string', 
+                'regex:/^[a-zA-Z0-9._-]{4,20}$/' 
+            ],
             'major' => 'required|string|max:100',
         ];
 
@@ -52,13 +63,16 @@ class CompleteProfileRequest extends FormRequest
         return $rules;
     }
 
-    public function toDTO(): CompleteProfileDTO
+    public function toDTO(): CompleteRegisterDTO
     {
-        return new CompleteProfileDTO(
+        return new CompleteRegisterDTO(
             user: $this->user(),
+            phone: $this->validated('phone'),
+            line: $this->validated('line') ?? null,
             major: $this->validated('major'),
-            nrp: $this->validated('nrp') ?? null,
-            batch: $this->validated('batch') ?? null,
+            institution: $this->validated('institution') ?? null,
+            nrp: $this->validated('nrp') ?? null,                
+            batch: $this->validated('batch') ?? null,            
             ktm: $this->file('ktm_path'),
             idCard: $this->file('id_card_path'),
         );

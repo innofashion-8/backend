@@ -4,7 +4,7 @@ namespace App\Http\Requests\User;
 
 use App\Http\Requests\ApiRequest;
 
-class DraftProfileRequest extends ApiRequest
+class DraftRegisterRequest extends ApiRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -39,6 +39,18 @@ class DraftProfileRequest extends ApiRequest
             'draft_data.nrp'       => 'nullable|string|max:50',
             'draft_data.major'     => 'nullable|string|max:100',
             'draft_data.batch'     => 'nullable|integer|min:2018|max:' . date('Y'),
+            'draft_data.institution' => 'nullable|string|max:100',
+            'draft_data.phone'       => [
+                'nullable', 
+                'string', 
+                'regex:/^(\+62|62|0)8[1-9][0-9]{6,11}$/',
+                'unique:users,phone'
+            ],
+            'draft_data.line'     => [
+                'nullable', 
+                'string', 
+                'regex:/^[a-zA-Z0-9._-]{4,20}$/' 
+            ],
         ];
     }
 }

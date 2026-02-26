@@ -2,13 +2,12 @@
 
 namespace App\Services;
 
-use App\Data\CompleteProfileDTO;
+use App\Data\CompleteRegisterDTO;
 use App\Data\ProfileDraftDTO;
 use App\Enum\UserType;
 use App\Models\CompetitionRegistration;
 use App\Models\EventRegistration;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -55,7 +54,7 @@ class UserService
         return $user;
     }
 
-    public function completeProfile(CompleteProfileDTO $dto): User
+    public function completeRegister(CompleteRegisterDTO $dto): User
     {
         $user = $dto->user;
         $isInternal = $user->type === UserType::INTERNAL;
@@ -119,7 +118,11 @@ class UserService
         DB::beginTransaction();
         try {
             $dataToUpdate = [
+                'phone'      => $dto->phone,
+                'line'       => $dto->line,
+                'institution' => $dto->institution,
                 'major'      => $dto->major,
+                'is_profile_complete' => true,
                 'draft_data' => null,
             ];
 

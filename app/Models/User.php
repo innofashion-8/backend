@@ -18,7 +18,6 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
-        'password',
         'type',
         'institution',
         'nrp',
@@ -29,10 +28,10 @@ class User extends Authenticatable
         'phone',
         'line',
         'draft_data',
+        'is_profile_complete',
     ];
 
     protected $hidden = [
-        'password',
         'remember_token',
     ];
 
@@ -45,9 +44,9 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
             'type' => UserType::class,
             'draft_data' => 'array',
+            'is_profile_complete' => 'boolean',
         ];
     }
 

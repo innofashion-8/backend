@@ -10,8 +10,8 @@ use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function() {
-    Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/login', [AuthController::class, 'login']);
+    // Route::post('/register', [AuthController::class, 'register']);
+    // Route::post('/login', [AuthController::class, 'login']);
     Route::post('/login/google', [AuthController::class, 'googleLogin']);
     Route::post('/admin/login/google', [AuthController::class, 'loginAdmin']);
 });
@@ -28,9 +28,9 @@ Route::get('/competitions', [CompetitionController::class, 'index']);
 Route::get('/competitions/{key}', [CompetitionController::class, 'show']);
 
 Route::middleware('auth:user')->group(function () {
-    Route::get('/profile/status', [UserController::class, 'checkStatus']);
-    Route::post('/profile/draft', [UserController::class, 'saveDraft']);
-    Route::post('/profile/submit', [UserController::class, 'submitProfile']);
+    Route::get('/complete-registration/status', [UserController::class, 'checkStatus']);
+    Route::post('/complete-registration/draft', [UserController::class, 'saveDraft']);
+    Route::post('/complete-registration/submit', [UserController::class, 'submitRegister']);
     Route::get('/registrations', [UserController::class, 'getRegistrations']);
     Route::prefix('competitions')->group(function() {
         Route::post('/{key}/submit', [CompetitionRegistrationController::class, 'submitFinal']);

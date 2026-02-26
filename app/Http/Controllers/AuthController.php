@@ -17,24 +17,24 @@ class AuthController extends Controller
         $this->authService = $authService;
     }
 
-    public function register(RegisterRequest $request)
-    {
-        $result = $this->authService->register($request->toDTO());
-        $responseData = [
-            'user'  => $result['user']
-        ];
-        return $this->success("Registrasi Berhasil !", $responseData);
-    }
+    // public function register(RegisterRequest $request)
+    // {
+    //     $result = $this->authService->register($request->toDTO());
+    //     $responseData = [
+    //         'user'  => $result['user']
+    //     ];
+    //     return $this->success("Registrasi Berhasil !", $responseData);
+    // }
     
-    public function login(LoginRequest $request)
-    {
-        $result = $this->authService->login($request->email, $request->password);
-        $responseData = [
-            'token' => $result['token'],
-            'user'  => $result['user']
-        ];
-        return $this->success("Login Berhasil", $responseData);
-    }
+    // public function login(LoginRequest $request)
+    // {
+    //     $result = $this->authService->login($request->email, $request->password);
+    //     $responseData = [
+    //         'token' => $result['token'],
+    //         'user'  => $result['user']
+    //     ];
+    //     return $this->success("Login Berhasil", $responseData);
+    // }
 
     public function googleLogin(GoogleLoginRequest $request)
     {

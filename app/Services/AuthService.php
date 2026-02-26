@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Data\RegisterDTO;
+use App\Enum\UserType;
 use App\Models\Admin;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
@@ -21,46 +22,46 @@ class AuthService
         $this->user = $user;
     }
 
-    public function register(RegisterDTO $data) 
-    {
-        $user = User::create([
-            'name'        => $data->name,
-            'email'       => $data->email,
-            'password'    => Hash::make($data->password),
-            'type'        => $data->type,
-            'institution' => $data->institution,
-            'phone'       => $data->phone,
-            'line_id'     => $data->line,
-        ]);
+    // public function register(RegisterDTO $data) 
+    // {
+    //     $user = User::create([
+    //         'name'        => $data->name,
+    //         'email'       => $data->email,
+    //         'password'    => Hash::make($data->password),
+    //         'type'        => $data->type,
+    //         'institution' => $data->institution,
+    //         'phone'       => $data->phone,
+    //         'line_id'     => $data->line,
+    //     ]);
 
-        return [
-            'user'  => $user,
-        ];
-    }
+    //     return [
+    //         'user'  => $user,
+    //     ];
+    // }
 
-    public function login(string $email, string $password)
-    {
-        $user = $this->user->where('email', $email)->first();
-        if (!$user)
-        {
-            throw ValidationException::withMessages([
-                'email' => ['Invalid Credentials']
-            ]);
-        }
+    // public function login(string $email, string $password)
+    // {
+    //     $user = $this->user->where('email', $email)->first();
+    //     if (!$user)
+    //     {
+    //         throw ValidationException::withMessages([
+    //             'email' => ['Invalid Credentials']
+    //         ]);
+    //     }
 
-        if (!Hash::check($password, $user->password)) {
-            throw ValidationException::withMessages([
-                'password' => ['Invalid Credentials']
-            ]);
-        }
+    //     if (!Hash::check($password, $user->password)) {
+    //         throw ValidationException::withMessages([
+    //             'password' => ['Invalid Credentials']
+    //         ]);
+    //     }
 
-        $token = $user->createToken('USER_TOKEN', ['*'], now()->addDay())->plainTextToken;
+    //     $token = $user->createToken('USER_TOKEN', ['*'], now()->addDay())->plainTextToken;
 
-        return [
-            'token' => $token,
-            'user' => $user
-        ];
-    }
+    //     return [
+    //         'token' => $token,
+    //         'user' => $user
+    //     ];
+    // }
 
     public function googleLogin(string $googleToken)
     {
@@ -71,11 +72,42 @@ class AuthService
                 'token' => ['Token Google tidak valid atau kadaluwarsa.']
             ]);
         }
-
-        $user = $this->user->where('email', $googleUser->getEmail())->first();
+        
+        $email = $googleUser->getEmail();
+        $user = $this->user->where('email', $email)->first();
         if (!$user) {
-            throw ValidationException::withMessages([
-                'email' => ['Email anda (' . $googleUser->getEmail() . ') tidak terdaftar.']
+            $isInternal = str_ends_with($email, '@john.petra.ac.id');
+            $type = $isInternal ? UserType::INTERNAL->value : UserType::EXTERNAL->value;
+
+            $nrp = null;
+            $batch = null;
+            $institution = null;
+
+            if ($isInternal) {
+                $institution = 'Petra Christian University';
+                $emailPrefix = explode('@', $email)[0];
+
+                if (strlen($emailPrefix) >= 5) {
+                    $nrp = strtoupper($emailPrefix);
+                    
+                    $batchCode = substr($nrp, 3, 2); 
+                    
+                    if (is_numeric($batchCode)) {
+                        $batch = (int) ("20" . $batchCode);
+                    }
+                }
+            }
+
+            $user = $this->user->create([
+                'name'                => $googleUser->getName(),
+                'email'               => $email,
+                'type'                => $type,
+                'nrp'                 => $nrp,
+                'batch'               => $batch,
+                'institution'         => $institution,
+                'phone'               => null,
+                'line'             => null,
+                'is_profile_complete' => false,
             ]);
         }
 

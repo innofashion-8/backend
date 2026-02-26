@@ -18,7 +18,6 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
             $table->enum('type', array_column(UserType::cases(), 'value'))
                 ->default(UserType::EXTERNAL->value);
             $table->string('nrp')->nullable()->unique(); // Nullable untuk eksternal
@@ -28,8 +27,9 @@ return new class extends Migration
 
             $table->string('ktm_path')->nullable(); 
             $table->string('id_card_path')->nullable();
-            $table->string('phone')->unique();
-            $table->string('line')->nullable();
+            $table->string('phone')->unique()->nullable();
+            $table->string('line')->nullable()->nullable();
+            $table->boolean('is_profile_complete')->default(false);
 
             $table->json('draft_data')->nullable();
             $table->rememberToken();
