@@ -57,6 +57,11 @@ class UserService
     public function completeRegister(CompleteRegisterDTO $dto): User
     {
         $user = $dto->user;
+        if ($user->is_profile_complete) {
+            throw ValidationException::withMessages([
+                'user' => ['Profile sudah complete.']
+            ]);
+        }
         $isInternal = $user->type === UserType::INTERNAL;
         $draft = $user->draft_data ?? [];
         $rollbackActions = [];
