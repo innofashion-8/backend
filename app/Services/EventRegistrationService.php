@@ -103,11 +103,14 @@ class EventRegistrationService
             ->where('user_id', $dto->userId)
             ->where('event_id', $dto->eventId)
             ->first();
-        if (!$registration || $registration->status !== StatusRegistration::DRAFT) {
-            throw ValidationException::withMessages(['status' => ['Invalid registration status or draft not found.']]);
+
+        if ($registration && $registration->status !== StatusRegistration::DRAFT) {
+            throw ValidationException::withMessages([
+                'status' => ['Anda sudah terdaftar di kompetisi ini. Pendaftaran sedang diproses.']
+            ]);
         }
 
-        $draft = $registration->draft_data ?? [];
+        $draft = $registration ? ($registration->draft_data ?? []) : [];
 
         // $user = $registration->user;
 
@@ -198,17 +201,20 @@ class EventRegistrationService
                 ]);
             }
 
-            $registration->update([
-                'status' => StatusRegistration::PENDING,
-                'draft_data' => null,
+            $dataToSave = [
+                'status'        => StatusRegistration::PENDING,
                 'payment_proof' => $finalPayment,
-            ]);
+                'draft_data'    => null, 
+            ];
 
-            // $user->update([
-            //     'nrp'          => $finalNrp,
-            //     'batch'        => $finalBatch,
-            //     'major'        => $dto->major ?? $user->major,
-            // ]);
+            if ($registration) {
+                $registration->update($dataToSave);
+            } else {
+                $dataToSave['user_id'] = $dto->userId;
+                $dataToSave['event_id'] = $dto->eventId;
+                $registration = $this->registration->create($dataToSave);
+            }
+
 
             DB::commit();
 
