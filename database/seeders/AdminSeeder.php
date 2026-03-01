@@ -22,11 +22,12 @@ class AdminSeeder extends Seeder
                 'division_slug' => 'it',
             ],
             [
-                'name' => 'Clarence Evan Wijaya',
-                'nrp' => 'C14240000',
-                'email' => 'clarenceevan0907@gmail.com',
-                'division_slug' => 'sekret',
+                'name' => 'Ezra Desmond Sutanto',
+                'nrp' => 'C14240176',
+                'email' => 'c14240176@john.petra.ac.id',
+                'division_slug' => 'it',
             ],
+            
         ];
 
         foreach ($adminsData as $adminData) {
