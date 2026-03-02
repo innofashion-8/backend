@@ -19,9 +19,9 @@ class DatabaseSeeder extends Seeder
             DivisionSeeder::class,
             AdminSeeder::class,
             AdminRoleSeeder::class,
-            EventSeeder::class,
-            CompetitionSeeder::class,
-            UserSeeder::class
+            // EventSeeder::class,
+            // CompetitionSeeder::class,
+            // UserSeeder::class
         ]);
     }
 }
