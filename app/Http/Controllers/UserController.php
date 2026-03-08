@@ -94,7 +94,7 @@ class UserController extends Controller
         return $this->success("Status profile fetched", [
             'is_completed' => $isCompleted,
             'draft_data'   => $draftData,
-            'profile_data' => $isCompleted ? [
+            'profile_data' => [
                 'type'         => $user->type,
                 'phone'        => $user->phone, 
                 'line'         => $user->line,
@@ -104,7 +104,7 @@ class UserController extends Controller
                 'batch'        => $user->batch,
                 'ktm_path'     => $user->ktm_path,
                 'id_card_path' => $user->id_card_path,
-            ] : null
+            ]
         ]);
     }
 }

@@ -2,18 +2,18 @@
 
 namespace App\Data;
 
+use App\Enum\CompetitionCategory;
+use App\Enum\RegionType;
+
 class SubmitCompetitionDTO
 {
     public function __construct(
         public readonly string $userId,
         public readonly string $competitionId,
-        public readonly ?string $paymentProof,
-        
-        // public readonly ?string $nrp,
-        // public readonly ?int $batch,
-        // public readonly ?string $major,
-        // public readonly ?string $ktmPath,
-        // public readonly ?string $idCardPath,
-        
+        public readonly RegionType $region,
+        public readonly ?CompetitionCategory $category = null,
+        public readonly ?string $groupName = null,
+        public readonly array $membersData = [],
+        public readonly array $memberFiles = [] 
     ) {}
 }

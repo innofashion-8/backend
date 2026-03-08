@@ -34,6 +34,7 @@ Route::middleware('auth:user')->group(function () {
     Route::get('/registrations', [UserController::class, 'getRegistrations']);
     Route::prefix('competitions')->group(function() {
         Route::post('/{key}/submit', [CompetitionRegistrationController::class, 'submitFinal']);
+        Route::post('/{key}/submission', [CompetitionRegistrationController::class, 'uploadSubmission']);
         Route::get('/{key}/status', [CompetitionRegistrationController::class, 'checkStatus']);
         Route::post('/{key}/draft', [CompetitionRegistrationController::class, 'saveDraft']);
     });

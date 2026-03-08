@@ -4,10 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Data\CompetitionFilterDTO;
 use App\Data\SaveDraftDTO;
+use App\Enum\ParticipantType;
+use App\Enum\RegionType;
 use App\Enum\StatusRegistration;
+use App\Enum\UserType;
 use App\Http\Requests\Admin\UpdateStatusRequest;
+use App\Http\Requests\User\Register\SaveCompetitionDraftRequest;
 use App\Http\Requests\User\Register\SaveDraftRequest;
 use App\Http\Requests\User\Register\SubmitCompetitionRequest;
+use App\Http\Requests\User\SubmissionRequest;
 use App\Services\CompetitionRegistrationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -35,90 +40,98 @@ class CompetitionRegistrationController extends Controller
         $registration = $this->registrationService->getDraft($user->id, $competition->id);
 
         $userProfile = [
-            'nrp'      => $user->nrp,
-            'major'    => $user->major,
-            'batch'    => $user->batch,
-            'phone'    => $user->phone,
-            'ktm_path' => $user->ktm_path,
+            'name'         => $user->name,
+            'email'        => $user->email,
+            'type'         => $user->type,
+            'nrp'          => $user->nrp,
+            'major'        => $user->major,
+            'batch'        => $user->batch,
+            'phone'        => $user->phone,
+            'ktm_path'     => $user->ktm_path,
             'id_card_path' => $user->id_card_path,
-            'institution' => $user->institution
+            'institution'  => $user->institution
         ];
+
+        $isEligible = true;
+        $ineligibilityReason = null;
+        
+        if ($user->type === UserType::INTERNAL && $competition->participant_type === ParticipantType::GROUP->value) {
+            $isEligible = false;
+            $ineligibilityReason = 'Mahasiswa (INTERNAL) tidak dapat mengikuti lomba Restyling. Lomba ini khusus untuk siswa SMP/SMA (Intermediate).';
+        }
 
         if (!$registration) {
             return $this->success("Belum terdaftar", [
-                'status'       => 'UNREGISTERED',
-                'is_locked'    => false,
-                'draft_data'   => null,
-                'user_profile' => $userProfile
+                'status'               => 'UNREGISTERED',
+                'is_locked'            => false,
+                'is_eligible'          => $isEligible,
+                'ineligibility_reason' => $ineligibilityReason,
+                'draft_data'           => null,
+                'user_profile'         => $userProfile
             ]);
         }
 
+        $waLink = null;
+        if ($registration->status === StatusRegistration::VERIFIED) {
+            $waLink = $registration->region === RegionType::NATIONAL
+                      ? $competition->wa_link_national
+                      : $competition->wa_link_international;  
+        }
+
         return $this->success("Status registration fetched", [
-            'registration_id' => $registration->id,
-            'status'          => $registration->status->value,
-            'is_locked'       => $registration->status !== StatusRegistration::DRAFT,
-            'draft_data'      => $registration->draft_data ?? (object)[],
-            'user_profile'    => $userProfile
+            'registration_id'      => $registration->id,
+            'status'               => $registration->status->value,
+            'is_locked'            => $registration->status !== StatusRegistration::DRAFT,
+            'is_eligible'          => $isEligible, 
+            'ineligibility_reason' => $ineligibilityReason,
+            'draft_data'           => $registration->draft_data ?? (object)[],
+            'user_profile'         => $userProfile,
+            'wa_link'              => $waLink,
+            'members'              => $registration->members, 
+            'submissions'          => $registration->submissions
         ]);
     }
 
-    public function saveDraft(SaveDraftRequest $request, $key)
+    public function saveDraft(SaveCompetitionDraftRequest $request, $key)
     {
         $competition = $this->registrationService->findCompetition($key);
-
         $payload = $request->validated()['draft_data'] ?? [];
-        
+       
         $existingDraft = $this->registrationService->getDraft($request->user()->id, $competition->id);
-        if ($request->hasFile("draft_data.payment_proof")) {
-            if ($existingDraft && isset($existingDraft->draft_data['payment_proof'])){
-                $oldPath = $existingDraft->draft_data['payment_proof'];
-                if (Storage::disk('public')->exists($oldPath)) {
-                    Storage::disk('public')->delete($oldPath);
+        $oldDraftData = $existingDraft ? ($existingDraft->draft_data ?? []) : [];
+
+        if (isset($payload['members']) && is_array($payload['members'])) {
+            
+            foreach ($payload['members'] as $index => $memberData) {
+                $file = $request->file("draft_data.members.{$index}.id_card");
+                
+                if ($file && $file->isValid()) {
+                    // Hapus draft lama kalau ada
+                    if (isset($oldDraftData['members'][$index]['id_card'])) {
+                        $oldPath = $oldDraftData['members'][$index]['id_card'];
+                        if (Storage::disk('public')->exists($oldPath)) {
+                            Storage::disk('public')->delete($oldPath);
+                        }
+                    }
+                    
+                    $path = $file->store('id_cards/draft', 'public');
+                    $payload['members'][$index]['id_card'] = $path;
+
+                } else {
+                    // Kalau gak upload baru, kembaliin path lama (kalau ada)
+                    if (isset($oldDraftData['members'][$index]['id_card'])) {
+                        $payload['members'][$index]['id_card'] = $oldDraftData['members'][$index]['id_card'];
+                    } else {
+                        unset($payload['members'][$index]['id_card']); 
+                    }
                 }
-            }
-            $path = $request->file("draft_data.payment_proof")->store('payments/draft', 'public');
-            $payload['payment_proof'] = $path;
-        } else {
-            if ($existingDraft && isset($existingDraft->draft_data['payment_proof'])){
-                $payload['payment_proof'] = $existingDraft->draft_data['payment_proof'];
-            } else {
-                $payload['payment_proof'] = null;
             }
         }
 
-        // $fileFields = [
-        //     'payment_proof' => 'payments/draft', 
-        //     'ktm_path'      => 'ktm/draft', 
-        //     'id_card_path'  => 'id/draft', 
-        // ];
-
-        // $existingDraft = $this->registrationService->getDraft($request->user()->id, $competition->id);
-
-        // foreach ($fileFields as $field => $folder) {
-        //     $requestKey = "draft_data.{$field}";
-
-        //     if ($request->hasFile($requestKey)) {
-        //         if ($existingDraft && isset($existingDraft->draft_data[$field])) {
-        //             $oldPath = $existingDraft->draft_data[$field];
-        //             if (Storage::disk('public')->exists($oldPath)) {
-        //                 Storage::disk('public')->delete($oldPath);
-        //             }
-        //         }
-        //         $path = $request->file($requestKey)->store($folder, 'public');
-        //         $payload[$field] = $path;
-        //     } else {
-        //         if ($existingDraft && isset($existingDraft->draft_data[$field])) {
-        //             $payload[$field] = $existingDraft->draft_data[$field];
-        //         } else {
-        //             $payload[$field] = null;
-        //         }
-        //     }
-        // }
-
-        $dto = new SaveDraftDTO(
-            userId: $request->user()->id,
-            activityId: $competition->id,
-            draftData: $payload
+        $dto = $request->toDTO(
+            $request->user()->id,
+            $competition->id,
+            $payload 
         );
 
         $registration = $this->registrationService->saveDraft($dto);
@@ -130,28 +143,26 @@ class CompetitionRegistrationController extends Controller
     {
         $competition = $this->registrationService->findCompetition($key);
 
-        $paymentPath = null;
-        $ktmPath = null;
-        $idCardPath = null;
-
-        if ($request->hasFile('payment_proof')) {
-            $paymentPath = $request->file('payment_proof')->store('payments', 'public');
-        }
-
-        // if ($request->hasFile('ktm_path')) {
-        //     $ktmPath = $request->file('ktm_path')->store('ktm', 'public');
-        // }
+        $memberFiles = [];
+        $membersData = $request->input('members', []);
         
-        // if ($request->hasFile('id_card_path')) {
-        //     $idCardPath = $request->file('id_card_path')->store('id_card', 'public');
-        // }
+        foreach ($membersData as $index => $memberData) {
+            $file = $request->file("members.{$index}.id_card");
+            
+            if ($file && $file->isValid()) {
+                $email = $memberData['email'] ?? null; 
+                
+                if ($email) {
+                    $path = $file->store('id_cards', 'public');
+                    $memberFiles[$email] = $path; 
+                }
+            }
+        }
 
         $dto = $request->toDTO(
             $request->user()->id,
             $competition->id,
-            $paymentPath,
-            // $ktmPath,
-            // $idCardPath
+            $memberFiles
         );
 
         $registration = $this->registrationService->submitFinal($dto);
@@ -166,5 +177,18 @@ class CompetitionRegistrationController extends Controller
         $registration = $this->registrationService->updateStatus($dto);
 
         return $this->success("Status pendaftaran berhasil diubah", $registration);
+    }
+
+    public function uploadSubmission(SubmissionRequest $request, $key)
+    {
+        $competition = $this->registrationService->findCompetition($key);
+        $artworkPath = $request->file('artwork')->store('submissions/artwork', 'public');
+        $conceptPath = $request->file('concept')->store('submissions/concept', 'public');
+
+        $dto = $request->toDTO($request->user()->id, $competition->id, $artworkPath, $conceptPath);
+
+        $this->registrationService->uploadSubmission($dto);
+
+        return $this->success("Karya dan Konsep berhasil dikumpulkan!");
     }
 }
