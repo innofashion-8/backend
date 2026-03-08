@@ -52,7 +52,8 @@ class CompetitionRegistrationService
     public function getAll(CompetitionFilterDTO $filters): LengthAwarePaginator
     {
         $query = $this->registration->query()
-            ->with(['user', 'competition', 'members.user', 'submissions']) 
+            ->with(['user', 'competition', 'members.user', 'submissions'])
+            ->where('status', '!=', StatusRegistration::DRAFT)
             ->latest();
 
         if ($filters->competitionId) {
