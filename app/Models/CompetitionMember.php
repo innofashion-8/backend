@@ -2,29 +2,25 @@
 
 namespace App\Models;
 
-use App\Enum\FileType;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
-class Submission extends Model
+class CompetitionMember extends Model
 {
     use HasUuids;
-
     protected $fillable = [
         'registration_id',
-        // 'title',
-        // 'description',
-        'file_type',
-        'file_path',
-        'submitted_at',
+        'user_id',
+        'member_order'
     ];
 
-    protected $casts = [
-        'file_type' => FileType::class,
-    ];
-
-    public function competitionRegistration()
+    public function registration()
     {
         return $this->belongsTo(CompetitionRegistration::class, 'registration_id', 'id');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id', 'id');
     }
 }

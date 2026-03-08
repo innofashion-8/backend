@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enum\CompetitionCategory;
+use App\Enum\RegionType;
 use App\Enum\StatusRegistration;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -13,6 +15,8 @@ class CompetitionRegistration extends Model
 
     protected $casts = [
         'draft_data' => 'array',
+        'region' => RegionType::class,
+        'category' => CompetitionCategory::class,
         'status'     => StatusRegistration::class,
     ];
 
@@ -26,7 +30,10 @@ class CompetitionRegistration extends Model
         // 'major',
         // 'ktm_path',
         // 'id_card_path',
-        'payment_proof',
+        // 'payment_proof',
+        'group_name',
+        'region',
+        'category',
         'status',
         'rejection_reason',
     ];
@@ -49,5 +56,10 @@ class CompetitionRegistration extends Model
     public function submissions()
     {
         return $this->hasMany(Submission::class, 'registration_id', 'id');
+    }
+
+    public function members()
+    {
+        return $this->hasMany(CompetitionMember::class, 'registration_id', 'id');
     }
 }

@@ -59,4 +59,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(CompetitionRegistration::class, 'user_id', 'id');
     }
+
+    public function competitionMembers()
+    {
+        return $this->hasMany(CompetitionMember::class, 'user_id', 'id');
+    }
 }

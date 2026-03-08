@@ -1,5 +1,6 @@
 <?php
 
+use App\Enum\FileType;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -16,8 +17,9 @@ return new class extends Migration
             $table->foreignUuid('registration_id')
                   ->constrained('competition_registrations')
                   ->onDelete('cascade');
-            $table->string('title');
-            $table->text('description')->nullable();
+            // $table->string('title');
+            // $table->text('description')->nullable();
+            $table->enum('file_type', array_column(FileType::cases(), 'value'));
             $table->string('file_path');
             $table->timestamp('submitted_at')->useCurrent();
             $table->timestamps();

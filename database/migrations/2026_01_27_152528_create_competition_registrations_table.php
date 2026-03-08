@@ -1,5 +1,7 @@
 <?php
 
+use App\Enum\CompetitionCategory;
+use App\Enum\RegionType;
 use App\Enum\StatusRegistration;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -19,6 +21,9 @@ return new class extends Migration
             $table->foreignUuid('verified_by')->nullable()->constrained('admins')->onDelete('set null');
 
             $table->json('draft_data')->nullable();
+            $table->string('group_name')->nullable();
+            $table->enum('region', array_column(RegionType::cases(), 'value'))->nullable();
+            $table->enum('category', array_column(CompetitionCategory::cases(), 'value'))->nullable();
 
             // $table->string('nrp')->nullable()->unique(); // Nullable untuk eksternal
             // $table->integer('batch')->nullable(); // Angkatan
@@ -26,7 +31,7 @@ return new class extends Migration
 
             // $table->string('ktm_path')->nullable(); 
             // $table->string('id_card_path')->nullable();
-            $table->string('payment_proof')->nullable();
+            // $table->string('payment_proof')->nullable();
             
             $table->enum('status', array_column(StatusRegistration::cases(), 'value'))->default(StatusRegistration::DRAFT->value);
             $table->text('rejection_reason')->nullable();
