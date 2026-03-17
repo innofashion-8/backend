@@ -181,11 +181,21 @@ class CompetitionRegistrationController extends Controller
 
     public function uploadSubmission(SubmissionRequest $request, $key)
     {
+        $user = $request->user();
         $competition = $this->registrationService->findCompetition($key);
-        $artworkPath = $request->file('artwork')->store('submissions/artwork', 'public');
-        $conceptPath = $request->file('concept')->store('submissions/concept', 'public');
+        
+        $userName = str_replace(' ', '_', $user->name);
+        $competitionName = str_replace(' ', '_', $competition->name);
+        
+        $artworkFile = $request->file('artwork');
+        $artworkFileName = "{$userName}_{$competitionName}.pdf";
+        $artworkPath = $artworkFile->storeAs('submissions/artwork', $artworkFileName, 'public');
+        
+        $conceptFile = $request->file('concept');
+        $conceptFileName = "{$userName}_Concept_{$competitionName}.pdf";
+        $conceptPath = $conceptFile->storeAs('submissions/concept', $conceptFileName, 'public');
 
-        $dto = $request->toDTO($request->user()->id, $competition->id, $artworkPath, $conceptPath);
+        $dto = $request->toDTO($user->id, $competition->id, $artworkPath, $conceptPath);
 
         $this->registrationService->uploadSubmission($dto);
 
