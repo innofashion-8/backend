@@ -30,29 +30,48 @@ class AdminRoleSeeder extends Seeder
             Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'admin']);
         }
 
-        $super = Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'admin']);
-        $super->givePermissionTo(Permission::where('guard_name', 'admin')->get());
-
+        $superAdmin = Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'admin']);
         $bph = Role::firstOrCreate(['name' => 'bph', 'guard_name' => 'admin']);
-        $bphPermissions = Permission::where('guard_name', 'admin')
-            ->whereIn('name', [
-                'view_dashboard', 
-                'manage_users', 
-                'manage_competitions', 
-                'manage_events', 
-                'manage_registrations', 
-                'scan_attendance'
-            ])->get();
-        $bph->givePermissionTo($bphPermissions);
-
+        $lomba = Role::firstOrCreate(['name' => 'lomba', 'guard_name' => 'admin']);
+        $sekret = Role::firstOrCreate(['name' => 'sekret', 'guard_name' => 'admin']);
         $admin = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'admin']);
-        $adminPermissions = Permission::where('guard_name', 'admin')
-            ->whereIn('name', [
-                'view_dashboard', 
-                'manage_users', 
-                'manage_registrations', 
-                'scan_attendance'
-            ])->get();
-        $admin->givePermissionTo($adminPermissions);
+
+        $superAdmin->givePermissionTo(Permission::where('guard_name', 'admin')->get());
+
+        // Akses BPH
+        $bph->givePermissionTo([
+            'view_dashboard', 
+            'manage_users', 
+            'manage_competitions', 
+            'manage_events', 
+            'manage_registrations', 
+            'scan_attendance'
+        ]);
+
+        // Akses Divisi Lomba
+        $lomba->givePermissionTo([
+            'view_dashboard',
+            'manage_users',
+            'manage_competitions',
+            'manage_registrations',
+            'scan_attendance'
+        ]);
+
+        // Akses Sekretariat
+        $sekret->givePermissionTo([
+            'view_dashboard',
+            'manage_users',
+            'manage_competitions',
+            'manage_events',
+            'manage_registrations',
+            'scan_attendance'
+        ]);
+
+        $admin->givePermissionTo([
+            'view_dashboard', 
+            'manage_users', 
+            'manage_registrations', 
+            'scan_attendance'
+        ]);
     }
 }
