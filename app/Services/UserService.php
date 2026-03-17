@@ -159,7 +159,7 @@ class UserService
 
     public function getRegistrations(string $userId): array
     {
-        $competitions = CompetitionRegistration::with('competition')
+        $competitions = CompetitionRegistration::with(['competition', 'submissions'])
             ->where('user_id', $userId)
             ->get();
 
