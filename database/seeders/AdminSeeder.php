@@ -119,7 +119,7 @@ class AdminSeeder extends Seeder
                 'name' => 'Clarence Evan Wijaya',
                 'nrp' => 'C14240069',
                 'email' => 'c14240069@john.petra.ac.id',
-                'division_slug' => 'bph',
+                'division_slug' => 'it',
             ],
             [
                 'name' => 'Ezra Desmond Sutanto',
