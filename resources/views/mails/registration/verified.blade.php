@@ -7,6 +7,10 @@
     
     <div style="max-width: 600px; margin: 0 auto; background-color: #1a1a1a; border: 1px solid #494947; padding: 40px;">
         
+        <div style="text-align: center; margin-bottom: 30px; border-bottom: 1px dashed #494947; padding-bottom: 30px;">
+            <img src="{{ $message->embed(public_path('assets/logo INNOF.png')) }}" alt="INNOFASHION 8 LOGO" style="max-width: 200px; height: auto; display: block; margin: 0 auto;">
+        </div>
+
         <p style="color: #979086; font-size: 12px; letter-spacing: 4px; margin-top: 0;">[ SYSTEM NOTIFICATION ]</p>
         
         <h1 style="color: #22c55e; font-size: 24px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 30px;">
