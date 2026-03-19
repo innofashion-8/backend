@@ -42,6 +42,20 @@ class UpdateStatusRequest extends FormRequest
         ];
     }
 
+    public function messages(): array
+    {
+        return [
+            // Status
+            'status.required' => 'Registration status is required.',
+            'status.in' => 'Invalid registration status. Must be VERIFIED, REJECTED, or PENDING.',
+
+            // Rejection Reason
+            'rejection_reason.string' => 'Rejection reason must be a valid text.',
+            'rejection_reason.max' => 'Rejection reason cannot exceed 255 characters.',
+            'rejection_reason.required_if' => 'Rejection reason is required when status is REJECTED.',
+        ];
+    }
+
     public function toDTO($id)
     {
         $data = $this->validated();

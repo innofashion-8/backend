@@ -51,6 +51,19 @@ class SaveDraftRequest extends ApiRequest
         ];
     }
 
+    public function messages(): array
+    {
+        return [
+            // Draft Data
+            'draft_data.array' => 'Draft data must be a valid array.',
+
+            // Payment Proof
+            'draft_data.payment_proof.file' => 'Payment proof must be a valid file.',
+            'draft_data.payment_proof.mimes' => 'Payment proof must be in JPG, JPEG, PNG, or PDF format.',
+            'draft_data.payment_proof.max' => 'Payment proof file size cannot exceed 2MB.',
+        ];
+    }
+
     public function toDTO(string $userId, string $activityId): SaveDraftDTO
     {
         $data = $this->validated();

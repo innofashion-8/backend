@@ -36,6 +36,16 @@ class SubmitEventRequest extends FormRequest
         ];
     }
 
+    public function messages(): array
+    {
+        return [
+            // Payment Proof
+            'payment_proof.file' => 'Payment proof must be a valid file.',
+            'payment_proof.mimes' => 'Payment proof must be in JPG, JPEG, or PNG format.',
+            'payment_proof.max' => 'Payment proof file size cannot exceed 2MB.',
+        ];
+    }
+
     public function toDTO(
         string $userId, 
         string $eventId, 

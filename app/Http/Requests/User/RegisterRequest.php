@@ -57,9 +57,39 @@ class RegisterRequest extends ApiRequest
     public function messages(): array
     {
         return [
-            'phone.regex'   => 'Format nomor telepon tidak valid. Gunakan awalan 08, 628, atau +628.',
-            'line.regex' => 'Line ID hanya boleh mengandung huruf, angka, titik, strip, dan underscore (4-20 karakter).',
-            'institution.required' => 'Peserta Eksternal wajib mengisi asal institusi/sekolah.',
+            // Name
+            'name.required' => 'Full name is required.',
+            'name.string' => 'Full name must be a valid text.',
+            'name.max' => 'Full name cannot exceed 255 characters.',
+
+            // Email
+            'email.required' => 'Email address is required.',
+            'email.email' => 'Please provide a valid email address.',
+            'email.unique' => 'This email address has already been registered.',
+
+            // Password
+            'password.required' => 'Password is required.',
+            'password.string' => 'Password must be a valid text.',
+            'password.min' => 'Password must be at least 8 characters long.',
+            'password.confirmed' => 'Password confirmation does not match.',
+
+            // Type
+            'type.required' => 'User type is required.',
+
+            // Institution
+            'institution.required' => 'Institution/School name is required for external participants.',
+            'institution.string' => 'Institution name must be a valid text.',
+            'institution.max' => 'Institution name cannot exceed 255 characters.',
+
+            // Phone
+            'phone.required' => 'WhatsApp number is required.',
+            'phone.string' => 'WhatsApp number must be a valid text.',
+            'phone.regex' => 'WhatsApp number must be a valid Indonesian phone number (e.g., +628123456789 or 08123456789).',
+            'phone.unique' => 'This WhatsApp number has already been registered by another user.',
+
+            // Line
+            'line.string' => 'LINE ID must be a valid text.',
+            'line.regex' => 'LINE ID must be 4-20 characters and can only contain letters, numbers, dots, underscores, and hyphens.',
         ];
     }
 
