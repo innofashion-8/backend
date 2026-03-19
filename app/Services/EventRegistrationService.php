@@ -72,11 +72,15 @@ class EventRegistrationService
             ->where('event_id', $dto->activityId)
             ->first();
 
-        if ($registration && $registration->status !== StatusRegistration::DRAFT) {
+        if ($registration && !in_array($registration->status, [StatusRegistration::DRAFT, StatusRegistration::REJECTED])) {
             throw ValidationException::withMessages([
-                'status' => ['Data sudah disubmit (Final). Anda tidak bisa mengubah draft lagi.']
+                'status' => ['Data sudah disubmit (Final). Anda tidak bisa mengubah data lagi.']
             ]);
         }
+
+        $statusToSave = ($registration && $registration->status === StatusRegistration::REJECTED) 
+                        ? StatusRegistration::REJECTED 
+                        : StatusRegistration::DRAFT;
 
         return $this->registration->updateOrCreate(
             [
@@ -85,7 +89,7 @@ class EventRegistrationService
             ],
             [
                 'draft_data' => $dto->draftData,
-                'status' => StatusRegistration::DRAFT,
+                'status' => $statusToSave,
             ]
         );
     }
@@ -104,9 +108,9 @@ class EventRegistrationService
             ->where('event_id', $dto->eventId)
             ->first();
 
-        if ($registration && $registration->status !== StatusRegistration::DRAFT) {
+        if ($registration && !in_array($registration->status, [StatusRegistration::DRAFT, StatusRegistration::REJECTED])) {
             throw ValidationException::withMessages([
-                'status' => ['Anda sudah terdaftar di kompetisi ini. Pendaftaran sedang diproses.']
+                'status' => ['Anda sudah terdaftar di event ini. Pendaftaran sedang diproses atau sudah diverifikasi.']
             ]);
         }
 
