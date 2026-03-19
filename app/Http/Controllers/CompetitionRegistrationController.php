@@ -84,6 +84,11 @@ class CompetitionRegistrationController extends Controller
             'is_locked'            => $registration->status !== StatusRegistration::DRAFT,
             'is_eligible'          => $isEligible, 
             'ineligibility_reason' => $ineligibilityReason,
+            
+            'region'               => $registration->region ?? null,
+            'category'             => $registration->category ?? null,
+            'group_name'           => $registration->group_name ?? null,
+            
             'draft_data'           => $registration->draft_data ?? (object)[],
             'user_profile'         => $userProfile,
             'wa_link'              => $waLink,

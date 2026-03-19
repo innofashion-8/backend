@@ -28,6 +28,7 @@ Route::get('/competitions', [CompetitionController::class, 'index']);
 Route::get('/competitions/{key}', [CompetitionController::class, 'show']);
 
 Route::middleware('auth:user')->group(function () {
+    Route::post('/profile/update', [UserController::class, 'updateProfile']);
     Route::get('/complete-registration/status', [UserController::class, 'checkStatus']);
     Route::post('/complete-registration/draft', [UserController::class, 'saveDraft']);
     Route::post('/complete-registration/submit', [UserController::class, 'submitRegister']);

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Data\ProfileDraftDTO;
 use App\Http\Requests\User\CompleteRegisterRequest;
 use App\Http\Requests\User\DraftRegisterRequest;
+use App\Http\Requests\User\UpdateProfileRequest;
 use App\Services\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -106,5 +107,13 @@ class UserController extends Controller
                 'id_card_path' => $user->id_card_path,
             ]
         ]);
+    }
+
+    public function updateProfile(UpdateProfileRequest $request)
+    {
+        $dto = $request->toDTO($request->user()->id);
+        $user = $this->userService->updateProfile($dto);
+
+        return $this->success("Identity recalibrated successfully!", $user);
     }
 }
