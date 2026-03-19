@@ -12,6 +12,8 @@ use App\Enum\FileType;
 use App\Enum\ParticipantType;
 use App\Enum\StatusRegistration;
 use App\Enum\UserType;
+use App\Mail\RegistrationRejected;
+use App\Mail\RegistrationVerified;
 use App\Models\Competition;
 use App\Models\CompetitionRegistration;
 use App\Models\User;
@@ -351,9 +353,9 @@ class CompetitionRegistrationService
 
         try {
             if ($dto->status === StatusRegistration::VERIFIED->value) {
-                // Mail::to($registration->user->email)->queue(new RegistrationVerified($registration));
+                Mail::to($registration->user->email)->queue(new RegistrationVerified($registration));
             } elseif ($dto->status === StatusRegistration::REJECTED->value) {
-                // Mail::to($registration->user->email)->queue(new RegistrationRejected($registration, $dto->rejection_reason));
+                Mail::to($registration->user->email)->queue(new RegistrationRejected($registration, $dto->rejection_reason));
             }
         } catch (\Exception $e) {
             Log::error("Gagal mengirim email status pendaftaran: " . $e->getMessage());

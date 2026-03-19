@@ -8,12 +8,15 @@ use App\Data\SubmitEventDTO;
 use App\Data\UpdateStatusDTO;
 use App\Enum\StatusRegistration;
 use App\Enum\UserType;
+use App\Mail\RegistrationRejected;
+use App\Mail\RegistrationVerified;
 use App\Models\Event;
 use App\Models\EventRegistration;
 use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -260,9 +263,9 @@ class EventRegistrationService
 
         try {
             if ($dto->status === StatusRegistration::VERIFIED->value) {
-                // Mail::to($registration->user->email)->queue(new RegistrationVerified($registration));
+                Mail::to($registration->user->email)->queue(new RegistrationVerified($registration));
             } elseif ($dto->status === StatusRegistration::REJECTED->value) {
-                // Mail::to($registration->user->email)->queue(new RegistrationRejected($registration, $dto->rejection_reason));
+                Mail::to($registration->user->email)->queue(new RegistrationRejected($registration, $dto->rejection_reason));
             }
         } catch (\Exception $e) {
             Log::error("Gagal mengirim email status pendaftaran: " . $e->getMessage());
