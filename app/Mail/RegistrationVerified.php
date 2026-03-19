@@ -5,6 +5,8 @@ namespace App\Mail;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class RegistrationVerified extends Mailable
 {
@@ -13,7 +15,7 @@ class RegistrationVerified extends Mailable
     public $registration;
     public $type;
     public $itemName;
-    public $qrCodeUrl; // 🔥 KITA CUMA SIMPAN STRING URL DI SINI
+    public $qrCodeUrl;
 
     public function __construct($registration)
     {
@@ -36,7 +38,15 @@ class RegistrationVerified extends Mailable
         $qrCodeData = null;
 
         if ($this->type === 'EVENT' && $this->qrCodeUrl) {
-            $qrCodeData = file_get_contents($this->qrCodeUrl);
+            try {
+                $response = Http::get($this->qrCodeUrl);
+                
+                if ($response->successful()) {
+                    $qrCodeData = $response->body();
+                }
+            } catch (\Exception $e) {
+                Log::error("Gagal download QR Code dari QuickChart: " . $e->getMessage());
+            }
         }
 
         $email = $this->subject("[ INNOFASHION 8 ] - PROTOCOL VERIFIED")
