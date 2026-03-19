@@ -12,6 +12,7 @@ class EventDTO
         public readonly string $description,
         public readonly int $price,
         public readonly int $quota,
+        public readonly string $wa_link,
         public readonly Carbon $start_time,
         public readonly bool $is_active = true,
     ) {}
