@@ -6,4 +6,5 @@ enum EventCategory :string
 {
     case TALKSHOW = 'TALKSHOW';
     case WORKSHOP = 'WORKSHOP';
+    case GRADUATION = 'GRADUATION';
 }
