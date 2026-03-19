@@ -73,5 +73,9 @@ Route::middleware('auth:admin')->group(function() {
             Route::put('/{key}', [CompetitionController::class, 'update']);
             Route::delete('/{key}', [CompetitionController::class, 'destroy']);
         });
+
+        Route::middleware(['permission:scan_attendance'])->prefix('scan')->group(function() {
+            Route::post('/attendance', [EventRegistrationController::class, 'checkIn']);
+        });
     });
 });

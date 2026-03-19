@@ -273,4 +273,47 @@ class EventRegistrationService
 
         return $registration;
     }
+
+    public function processCheckIn(string $registrationId)
+    {
+        $registration = EventRegistration::with('user', 'event')->find($registrationId);
+        $type = 'EVENT';
+        $itemName = $registration ? $registration->event->title : '';
+
+        if (!$registration) {
+            throw ValidationException::withMessages([
+                'registration_id' => ['Data pendaftaran tidak ditemukan di sistem.']
+            ]);
+        }
+
+        if ($registration->status !== StatusRegistration::VERIFIED) {
+            throw ValidationException::withMessages([
+                'status' => ["ACCESS DENIED: Status pendaftaran peserta masih {$registration->status}."]
+            ]);
+        }
+
+        if ($registration->attended) {
+            throw ValidationException::withMessages([
+                'attended' => ['TICKET EXPIRED: Peserta ini sudah melakukan Check-In sebelumnya!']
+            ]);
+        }
+
+        DB::beginTransaction();
+        try {
+            $registration->update([
+                'attended' => true,
+            ]);
+            DB::commit();
+
+            return [
+                'user_name' => $registration->user->name,
+                'type'      => $type,
+                'item_name' => $itemName,
+            ];
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
 }

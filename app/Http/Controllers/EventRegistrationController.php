@@ -5,10 +5,10 @@ namespace App\Http\Controllers;
 use App\Data\EventFilterDTO;
 use App\Data\SaveDraftDTO;
 use App\Enum\StatusRegistration;
+use App\Http\Requests\Admin\CheckInRequest;
 use App\Http\Requests\Admin\UpdateStatusRequest;
 use App\Http\Requests\User\Register\SaveDraftRequest;
 use App\Http\Requests\User\Register\SubmitEventRequest;
-use App\Models\EventRegistration;
 use App\Services\EventRegistrationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -124,5 +124,16 @@ class EventRegistrationController extends Controller
         $registration = $this->registrationService->updateStatus($dto);
 
         return $this->success("Status pendaftaran berhasil diubah", $registration);
+    }
+
+    public function checkIn(CheckInRequest $request)
+    {
+        $registrationId = $request->validated('registration_id');
+
+        $data = $this->registrationService->processCheckIn($registrationId);
+
+        $message = "ACCESS GRANTED. Selamat datang, {$data['user_name']} di {$data['type']} {$data['item_name']}.";
+
+        return $this->success($message, $data);
     }
 }
