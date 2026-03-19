@@ -17,6 +17,7 @@ class UpdateProfileRequest extends ApiRequest
     {
         $user = $this->user();
         $isInternal = $user->type === UserType::INTERNAL;
+        $currentYear = date('Y');
 
         $rules = [
             'name'        => ['required', 'string', 'max:255'],
@@ -34,7 +35,7 @@ class UpdateProfileRequest extends ApiRequest
 
         if ($isInternal) {
             $rules['nrp']      = ['required', 'string', 'max:50'];
-            $rules['batch']    = ['required', 'string', 'max:4'];
+            $rules['batch']    = ['required', 'integer', 'min:2018', 'max:' . $currentYear];
             $rules['ktm_path'] = ['nullable', 'file', 'mimes:jpeg,png,jpg,pdf', 'max:2048'];
         } else {
             $rules['id_card_path'] = ['nullable', 'file', 'mimes:jpeg,png,jpg,pdf', 'max:2048'];
@@ -45,6 +46,8 @@ class UpdateProfileRequest extends ApiRequest
 
     public function messages(): array
     {
+        $currentYear = date('Y');
+
         return [
             // Name
             'name.required' => 'Full name is required.',
@@ -78,8 +81,9 @@ class UpdateProfileRequest extends ApiRequest
 
             // Batch (Internal)
             'batch.required' => 'Batch/Year is required for internal users.',
-            'batch.string' => 'Batch/Year must be a valid text.',
-            'batch.max' => 'Batch/Year cannot exceed 4 characters.',
+            'batch.integer' => 'Batch/Year must be a valid number.',
+            'batch.min' => 'Batch/Year cannot be older than 2018.',
+            'batch.max' => "Batch/Year cannot exceed {$currentYear}.",
 
             // KTM Path (Internal)
             'ktm_path.file' => 'Student ID Card must be a valid file.',
@@ -103,7 +107,7 @@ class UpdateProfileRequest extends ApiRequest
             major: $this->validated('major'),
             line: $this->validated('line') ?? null,
             nrp: $this->validated('nrp') ?? null,
-            batch: $this->validated('batch') ?? null,
+            batch: (string) $this->validated('batch') ?? null,
             ktmFile: $this->file('ktm_path'),
             idCardFile: $this->file('id_card_path')
         );
