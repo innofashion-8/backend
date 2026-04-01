@@ -74,4 +74,18 @@ class AuthController extends Controller
         $user = $this->authService->profile($request->user());
         return $this->success("Data User", $user);
     }
+
+    public function impersonate(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id'
+        ]);
+
+        $result = $this->authService->impersonate($request->user_id);
+        $responseData = [
+            'token' => $result['token'],
+            'user'  => $result['user']
+        ];
+        return $this->success("Impersonate Berhasil", $responseData);
+    }
 }
