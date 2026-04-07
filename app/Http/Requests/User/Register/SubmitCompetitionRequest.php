@@ -50,6 +50,44 @@ class SubmitCompetitionRequest extends ApiRequest
         ];
     }
 
+    public function messages(): array
+    {
+        return [
+            // Region
+            'region.required' => 'Region type is required.',
+
+            // Category
+            'category.required' => 'Competition category is required.',
+
+            // Group Name
+            'group_name.string' => 'Group name must be a valid text.',
+            'group_name.max' => 'Group name cannot exceed 255 characters.',
+
+            // Members Array
+            'members.array' => 'Members data must be a valid array.',
+
+            // Member Name
+            'members.*.name.required' => 'Member name is required.',
+            'members.*.name.string' => 'Member name must be a valid text.',
+            'members.*.name.max' => 'Member name cannot exceed 255 characters.',
+
+            // Member Email
+            'members.*.email.required' => 'Member email is required.',
+            'members.*.email.email' => 'Member email must be a valid email address.',
+
+            // Member Phone
+            'members.*.phone.required' => 'Member phone number is required.',
+            'members.*.phone.string' => 'Member phone number must be a valid text.',
+            'members.*.phone.max' => 'Member phone number cannot exceed 20 characters.',
+            'members.*.phone.regex' => 'Member phone number must be a valid Indonesian phone number (e.g., +628123456789 or 08123456789).',
+
+            // Member ID Card
+            'members.*.id_card.file' => 'Member ID card must be a valid file.',
+            'members.*.id_card.mimes' => 'Member ID card must be in JPG, JPEG, PNG, or PDF format.',
+            'members.*.id_card.max' => 'Member ID card file size cannot exceed 2MB.',
+        ];
+    }
+
     public function toDTO(
         string $userId, 
         string $competitionId,

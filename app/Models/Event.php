@@ -16,6 +16,7 @@ class Event extends Model
         'description',
         'price',
         'quota',
+        'wa_link',
         'start_time',
         'is_active',
     ];

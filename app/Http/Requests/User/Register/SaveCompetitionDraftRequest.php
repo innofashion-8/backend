@@ -38,6 +38,37 @@ class SaveCompetitionDraftRequest extends ApiRequest
         ];
     }
 
+    public function messages(): array
+    {
+        return [
+            // Draft Data
+            'draft_data.array' => 'Draft data must be a valid array.',
+
+            // Region
+            'draft_data.region.string' => 'Region must be a valid text.',
+
+            // Category
+            'draft_data.category.string' => 'Category must be a valid text.',
+
+            // Group Name
+            'draft_data.group_name.string' => 'Group name must be a valid text.',
+            'draft_data.group_name.max' => 'Group name cannot exceed 255 characters.',
+
+            // Members
+            'draft_data.members.array' => 'Members data must be a valid array.',
+            'draft_data.members.*.name.string' => 'Member name must be a valid text.',
+            'draft_data.members.*.name.max' => 'Member name cannot exceed 255 characters.',
+            'draft_data.members.*.email.email' => 'Member email must be a valid email address.',
+            'draft_data.members.*.phone.string' => 'Member phone must be a valid text.',
+            'draft_data.members.*.phone.max' => 'Member phone cannot exceed 20 characters.',
+
+            // Member ID Card
+            'draft_data.members.*.id_card.file' => 'Member ID card must be a valid file.',
+            'draft_data.members.*.id_card.mimes' => 'Member ID card must be in JPG, JPEG, PNG, or PDF format.',
+            'draft_data.members.*.id_card.max' => 'Member ID card file size cannot exceed 2MB.',
+        ];
+    }
+
     public function toDTO(
         string $userId, 
         string $activityId,

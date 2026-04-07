@@ -20,6 +20,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->decimal('price', 8, 2)->default(0);
             $table->integer('quota');
+            $table->string('wa_link');
             $table->dateTime('start_time');
             $table->boolean('is_active')->default(true);
             $table->timestamps();

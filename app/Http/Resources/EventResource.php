@@ -22,6 +22,7 @@ class EventResource extends JsonResource
             'description' => $this->description,
             'price'       => $this->price,
             'quota'       => $this->quota,
+            'wa_link'     => $this->wa_link,
             
             'start_time_human' => $this->start_time->translatedFormat('d F Y, H:i'),
             

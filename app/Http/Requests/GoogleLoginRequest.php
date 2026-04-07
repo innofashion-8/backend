@@ -29,8 +29,8 @@ class GoogleLoginRequest extends ApiRequest
     public function messages()
     {
         return [
-            'token.required' => 'Google Token is required',
-            'token.string' => 'Google Token must be a string',
+            'token.required' => 'Google authentication token is required.',
+            'token.string' => 'Google authentication token must be a valid text.',
         ];
     }
 }

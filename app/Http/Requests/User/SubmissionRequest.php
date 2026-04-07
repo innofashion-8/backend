@@ -28,6 +28,23 @@ class SubmissionRequest extends FormRequest
         ];
     }
 
+    public function messages(): array
+    {
+        return [
+            // Artwork
+            'artwork.required' => 'Artwork file is required.',
+            'artwork.file' => 'Artwork must be a valid file.',
+            'artwork.mimes' => 'Artwork must be in PDF format.',
+            'artwork.max' => 'Artwork file size cannot exceed 5MB.',
+
+            // Concept
+            'concept.required' => 'Concept file is required.',
+            'concept.file' => 'Concept must be a valid file.',
+            'concept.mimes' => 'Concept must be in PDF format.',
+            'concept.max' => 'Concept file size cannot exceed 5MB.',
+        ];
+    }
+
     public function toDTO(
         string $userId,
         string $competitionId,

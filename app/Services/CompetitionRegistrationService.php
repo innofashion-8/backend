@@ -12,6 +12,8 @@ use App\Enum\FileType;
 use App\Enum\ParticipantType;
 use App\Enum\StatusRegistration;
 use App\Enum\UserType;
+use App\Mail\RegistrationRejected;
+use App\Mail\RegistrationVerified;
 use App\Models\Competition;
 use App\Models\CompetitionRegistration;
 use App\Models\User;
@@ -83,11 +85,15 @@ class CompetitionRegistrationService
             ->where('competition_id', $dto->activityId)
             ->first();
 
-        if ($registration && $registration->status !== StatusRegistration::DRAFT) {
+        if ($registration && !in_array($registration->status, [StatusRegistration::DRAFT, StatusRegistration::REJECTED])) {
             throw ValidationException::withMessages([
-                'status' => ['Data sudah disubmit (Final). Anda tidak bisa mengubah draft lagi.']
+                'status' => ['Data sudah disubmit (Final). Anda tidak bisa mengubah data lagi.']
             ]);
         }
+
+        $statusToSave = ($registration && $registration->status === StatusRegistration::REJECTED) 
+                        ? StatusRegistration::REJECTED 
+                        : StatusRegistration::DRAFT;
 
         return $this->registration->updateOrCreate(
             [
@@ -96,7 +102,7 @@ class CompetitionRegistrationService
             ],
             [
                 'draft_data' => $dto->draftData,
-                'status' => StatusRegistration::DRAFT,
+                'status' => $statusToSave,
             ]
         );
     }
@@ -117,9 +123,9 @@ class CompetitionRegistrationService
             ->where('competition_id', $dto->competitionId)
             ->first();
 
-        if ($registration && $registration->status !== StatusRegistration::DRAFT) {
+        if ($registration && !in_array($registration->status, [StatusRegistration::DRAFT, StatusRegistration::REJECTED])) {
             throw ValidationException::withMessages([
-                'status' => ['Anda sudah terdaftar di kompetisi ini. Pendaftaran sedang diproses.']
+                'status' => ['Anda sudah terdaftar di kompetisi ini. Pendaftaran sedang diproses atau sudah diverifikasi.']
             ]);
         }
 
@@ -347,9 +353,9 @@ class CompetitionRegistrationService
 
         try {
             if ($dto->status === StatusRegistration::VERIFIED->value) {
-                // Mail::to($registration->user->email)->queue(new RegistrationVerified($registration));
+                Mail::to($registration->user->email)->queue(new RegistrationVerified($registration));
             } elseif ($dto->status === StatusRegistration::REJECTED->value) {
-                // Mail::to($registration->user->email)->queue(new RegistrationRejected($registration, $dto->rejection_reason));
+                Mail::to($registration->user->email)->queue(new RegistrationRejected($registration, $dto->rejection_reason));
             }
         } catch (\Exception $e) {
             Log::error("Gagal mengirim email status pendaftaran: " . $e->getMessage());

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Data\CompleteRegisterDTO;
 use App\Data\ProfileDraftDTO;
+use App\Data\UpdateProfileDTO;
 use App\Enum\UserType;
 use App\Models\CompetitionRegistration;
 use App\Models\EventRegistration;
@@ -171,5 +172,63 @@ class UserService
             'competitions' => $competitions,
             'events' => $events,
         ];
+    }
+
+    public function updateProfile(UpdateProfileDTO $dto): User
+    {
+        $user = User::findOrFail($dto->userId);
+        DB::beginTransaction();
+
+        try {
+            $isInternal = $user->type === UserType::INTERNAL;
+
+            $updateData = [
+                'name'        => $dto->name,
+                'phone'       => $dto->phone,
+                'institution' => $dto->institution,
+                'major'       => $dto->major,
+                'line'        => $dto->line,
+            ];
+
+            if ($isInternal) {
+                $updateData['nrp']   = $dto->nrp;
+                $updateData['batch'] = $dto->batch;
+            }
+
+            $newPath = null;
+
+            $targetColumn = $isInternal ? 'ktm_path' : 'id_card_path';
+            $targetFolder = $isInternal ? 'ktm' : 'id_cards';
+            $uploadedFile = $isInternal ? $dto->ktmFile : $dto->idCardFile;
+
+            if ($uploadedFile && $uploadedFile->isValid()) {
+                
+                // Hapus file lama kalau ada
+                if ($user->{$targetColumn} && Storage::disk('public')->exists($user->{$targetColumn})) {
+                    Storage::disk('public')->delete($user->{$targetColumn});
+                }
+                
+                // Simpan file baru
+                $newPath = $uploadedFile->store($targetFolder, 'public');
+                $updateData[$targetColumn] = $newPath;
+            }
+
+            $user->update($updateData);
+
+            DB::commit();
+
+            return $user;
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            if ($newPath && Storage::disk('public')->exists($newPath)) {
+                Storage::disk('public')->delete($newPath);
+                Log::info("Rollback Update Profile: File {$newPath} dihapus.");
+            }
+
+            Log::error("Gagal Update Profile: " . $e->getMessage());
+            throw $e;
+        }
     }
 }

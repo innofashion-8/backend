@@ -30,10 +30,12 @@ class LoginRequest extends ApiRequest
     public function messages()
     {
         return [
-            'email.required' => 'Email wajib diisi.',
-            'email.email' => 'Email tidak valid.',
-            'password.required' => 'Password wajib diisi.',
-            'password.min' => 'Password minimal 8 karakter.',
+            'email.required' => 'Email address is required.',
+            'email.string' => 'Email must be a valid text.',
+            'email.email' => 'Please provide a valid email address.',
+            'password.required' => 'Password is required.',
+            'password.string' => 'Password must be a valid text.',
+            'password.min' => 'Password must be at least 8 characters long.',
         ];
     }
 }

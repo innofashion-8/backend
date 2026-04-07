@@ -28,6 +28,7 @@ Route::get('/competitions', [CompetitionController::class, 'index']);
 Route::get('/competitions/{key}', [CompetitionController::class, 'show']);
 
 Route::middleware('auth:user')->group(function () {
+    Route::post('/profile/update', [UserController::class, 'updateProfile']);
     Route::get('/complete-registration/status', [UserController::class, 'checkStatus']);
     Route::post('/complete-registration/draft', [UserController::class, 'saveDraft']);
     Route::post('/complete-registration/submit', [UserController::class, 'submitRegister']);
@@ -71,6 +72,10 @@ Route::middleware('auth:admin')->group(function() {
             Route::post('/', [CompetitionController::class, 'store']);
             Route::put('/{key}', [CompetitionController::class, 'update']);
             Route::delete('/{key}', [CompetitionController::class, 'destroy']);
+        });
+
+        Route::middleware(['permission:scan_attendance'])->prefix('scan')->group(function() {
+            Route::post('/attendance', [EventRegistrationController::class, 'checkIn']);
         });
     });
 });

@@ -44,6 +44,7 @@ class EventService
             'description' => $dto->description,
             'price'       => $dto->price,
             'quota'       => $dto->quota,
+            'wa_link'     => $dto->wa_link,
             'start_time'  => $dto->start_time,
             'is_active'   => $dto->is_active,
         ]);
@@ -58,6 +59,7 @@ class EventService
             'description' => $dto->description,
             'price'       => $dto->price,
             'quota'       => $dto->quota,
+            'wa_link'     => $dto->wa_link,
             'start_time'  => $dto->start_time,
             'is_active'   => $dto->is_active,
         ];

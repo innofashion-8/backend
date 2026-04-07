@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Models\Role;
 use Spatie\Permission\Traits\HasRoles;
 
 class Admin extends Authenticatable
@@ -27,16 +28,29 @@ class Admin extends Authenticatable
 
     public function syncRoleByDivision()
     {
-        $slug = $this->division->slug;
+        if (!$this->relationLoaded('division')) {
+            $this->load('division');
+        }
 
-        if ($slug === 'it') {
-            $this->syncRoles('super_admin');
-        } 
-        elseif ($slug === 'bph' || $slug === 'kabid') {
-            $this->syncRoles('bph');
-        } 
-        else {
-            $this->syncRoles('admin');
+        if ($this->division) {
+            $slug = $this->division->slug;
+           
+            $specialMap = [
+                'it'    => 'super_admin',
+                'kabid' => 'bph',
+            ];
+
+            $targetRole = $specialMap[$slug] ?? $slug;
+
+            $roleExists = Role::where('name', $targetRole)
+                            ->where('guard_name', 'admin')
+                            ->exists();
+
+            if ($roleExists) {
+                $this->syncRoles($targetRole);
+            } else {
+                $this->syncRoles('admin');
+            }
         }
     }
 

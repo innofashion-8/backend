@@ -8,12 +8,15 @@ use App\Data\SubmitEventDTO;
 use App\Data\UpdateStatusDTO;
 use App\Enum\StatusRegistration;
 use App\Enum\UserType;
+use App\Mail\RegistrationRejected;
+use App\Mail\RegistrationVerified;
 use App\Models\Event;
 use App\Models\EventRegistration;
 use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -72,11 +75,15 @@ class EventRegistrationService
             ->where('event_id', $dto->activityId)
             ->first();
 
-        if ($registration && $registration->status !== StatusRegistration::DRAFT) {
+        if ($registration && !in_array($registration->status, [StatusRegistration::DRAFT, StatusRegistration::REJECTED])) {
             throw ValidationException::withMessages([
-                'status' => ['Data sudah disubmit (Final). Anda tidak bisa mengubah draft lagi.']
+                'status' => ['Data sudah disubmit (Final). Anda tidak bisa mengubah data lagi.']
             ]);
         }
+
+        $statusToSave = ($registration && $registration->status === StatusRegistration::REJECTED) 
+                        ? StatusRegistration::REJECTED 
+                        : StatusRegistration::DRAFT;
 
         return $this->registration->updateOrCreate(
             [
@@ -85,7 +92,7 @@ class EventRegistrationService
             ],
             [
                 'draft_data' => $dto->draftData,
-                'status' => StatusRegistration::DRAFT,
+                'status' => $statusToSave,
             ]
         );
     }
@@ -104,9 +111,9 @@ class EventRegistrationService
             ->where('event_id', $dto->eventId)
             ->first();
 
-        if ($registration && $registration->status !== StatusRegistration::DRAFT) {
+        if ($registration && !in_array($registration->status, [StatusRegistration::DRAFT, StatusRegistration::REJECTED])) {
             throw ValidationException::withMessages([
-                'status' => ['Anda sudah terdaftar di kompetisi ini. Pendaftaran sedang diproses.']
+                'status' => ['Anda sudah terdaftar di event ini. Pendaftaran sedang diproses atau sudah diverifikasi.']
             ]);
         }
 
@@ -256,14 +263,57 @@ class EventRegistrationService
 
         try {
             if ($dto->status === StatusRegistration::VERIFIED->value) {
-                // Mail::to($registration->user->email)->queue(new RegistrationVerified($registration));
+                Mail::to($registration->user->email)->queue(new RegistrationVerified($registration));
             } elseif ($dto->status === StatusRegistration::REJECTED->value) {
-                // Mail::to($registration->user->email)->queue(new RegistrationRejected($registration, $dto->rejection_reason));
+                Mail::to($registration->user->email)->queue(new RegistrationRejected($registration, $dto->rejection_reason));
             }
         } catch (\Exception $e) {
             Log::error("Gagal mengirim email status pendaftaran: " . $e->getMessage());
         }
 
         return $registration;
+    }
+
+    public function processCheckIn(string $registrationId)
+    {
+        $registration = EventRegistration::with('user', 'event')->find($registrationId);
+        $type = 'EVENT';
+        $itemName = $registration ? $registration->event->title : '';
+
+        if (!$registration) {
+            throw ValidationException::withMessages([
+                'registration_id' => ['Data pendaftaran tidak ditemukan di sistem.']
+            ]);
+        }
+
+        if ($registration->status !== StatusRegistration::VERIFIED) {
+            throw ValidationException::withMessages([
+                'status' => ["ACCESS DENIED: Status pendaftaran peserta masih {$registration->status}."]
+            ]);
+        }
+
+        if ($registration->attended) {
+            throw ValidationException::withMessages([
+                'attended' => ['TICKET EXPIRED: Peserta ini sudah melakukan Check-In sebelumnya!']
+            ]);
+        }
+
+        DB::beginTransaction();
+        try {
+            $registration->update([
+                'attended' => true,
+            ]);
+            DB::commit();
+
+            return [
+                'user_name' => $registration->user->name,
+                'type'      => $type,
+                'item_name' => $itemName,
+            ];
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
     }
 }

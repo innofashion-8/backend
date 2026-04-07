@@ -32,8 +32,46 @@ class SaveEventRequest extends ApiRequest
             'description' => 'nullable|string',
             'price'       => 'required|integer|min:0',
             'quota'       => 'required|integer|min:1',
+            'wa_link'     => 'required|url',
             'start_time'  => 'required|date',
             'is_active'   => 'sometimes|boolean',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            // Title
+            'title.required' => 'Event title is required.',
+            'title.string' => 'Event title must be a valid text.',
+            'title.max' => 'Event title cannot exceed 255 characters.',
+
+            // Category
+            'category.required' => 'Event category is required.',
+
+            // Description
+            'description.string' => 'Description must be a valid text.',
+
+            // Price
+            'price.required' => 'Event price is required.',
+            'price.integer' => 'Event price must be a valid number.',
+            'price.min' => 'Event price cannot be negative.',
+
+            // Quota
+            'quota.required' => 'Event quota is required.',
+            'quota.integer' => 'Event quota must be a valid number.',
+            'quota.min' => 'Event quota must be at least 1.',
+
+            // WhatsApp Link
+            'wa_link.required' => 'WhatsApp group link is required.',
+            'wa_link.url' => 'WhatsApp group link must be a valid URL.',
+
+            // Start Time
+            'start_time.required' => 'Event start time is required.',
+            'start_time.date' => 'Event start time must be a valid date.',
+
+            // Is Active
+            'is_active.boolean' => 'Active status must be true or false.',
         ];
     }
 
@@ -46,6 +84,7 @@ class SaveEventRequest extends ApiRequest
             description: $data['description'],
             price: $data['price'],
             quota: $data['quota'],
+            wa_link: $data['wa_link'],
             start_time: Carbon::parse($data['start_time']),
             is_active: $data['is_active'] ?? true,
         );

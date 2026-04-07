@@ -7,6 +7,7 @@ use App\Enum\UserType;
 use App\Models\Admin;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Laravel\Socialite\Facades\Socialite;
@@ -145,6 +146,11 @@ class AuthService
         }
 
         $admin->syncRoleByDivision();
+
+        Log::info("Login Admin: " . $admin->name);
+        Log::info("Roles: " . $admin->getRoleNames()->first());
+        Log::info("Permissions: " . $admin->getAllPermissions()->pluck('name'));
+        Log::info("Division: " . $admin->division->name ?? 'No Division');
 
         $token = $admin->createToken('ADMIN_TOKEN', ['*'], now()->addDay())->plainTextToken;
 
