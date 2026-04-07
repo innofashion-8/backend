@@ -191,13 +191,14 @@ class CompetitionRegistrationController extends Controller
         
         $userName = str_replace(' ', '_', $user->name);
         $competitionName = str_replace(' ', '_', $competition->name);
+        $timestamp = now()->format('YmdHis');
         
         $artworkFile = $request->file('artwork');
-        $artworkFileName = "{$userName}_{$competitionName}.pdf";
+        $artworkFileName = "{$userName}_{$competitionName}_{$timestamp}.pdf";
         $artworkPath = $artworkFile->storeAs('submissions/artwork', $artworkFileName, 'public');
         
         $conceptFile = $request->file('concept');
-        $conceptFileName = "{$userName}_Concept_{$competitionName}.pdf";
+        $conceptFileName = "{$userName}_Concept_{$competitionName}_{$timestamp}.pdf";
         $conceptPath = $conceptFile->storeAs('submissions/concept', $conceptFileName, 'public');
 
         $dto = $request->toDTO($user->id, $competition->id, $artworkPath, $conceptPath);

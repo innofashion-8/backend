@@ -186,4 +186,16 @@ class AuthService
         $user->currentAccessToken()->delete();
         return true;
     }
+
+    public function impersonate(string $userId)
+    {
+        $user = $this->user->findOrFail($userId);
+        
+        $token = $user->createToken('IMPERSONATE_TOKEN', ['*'], now()->addDay())->plainTextToken;
+
+        return [
+            'token' => $token,
+            'user' => $user
+        ];
+    }
 }

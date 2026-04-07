@@ -37,7 +37,7 @@ class CompleteRegisterRequest extends ApiRequest
                 'required', 
                 'string', 
                 'regex:/^(\+62|62|0)8[1-9][0-9]{6,11}$/',
-                'unique:users,phone'
+                'unique:users,phone,' . $user->id
             ],
             'line'     => [
                 'nullable', 

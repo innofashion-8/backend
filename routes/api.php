@@ -49,6 +49,7 @@ Route::middleware('auth:user')->group(function () {
 
 Route::middleware('auth:admin')->group(function() {
     Route::prefix('admin')->group(function() {
+        Route::post('/impersonate', [AuthController::class, 'impersonate']);
         Route::get('/dashboard/stats', [DashboardController::class, 'getStats']);
         Route::middleware(['permission:manage_users'])->group(function() {
             Route::get('/users', [UserController::class, 'index']);

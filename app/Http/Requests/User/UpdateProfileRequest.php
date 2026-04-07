@@ -36,9 +36,9 @@ class UpdateProfileRequest extends ApiRequest
         if ($isInternal) {
             $rules['nrp']      = ['required', 'string', 'max:50'];
             $rules['batch']    = ['required', 'integer', 'min:2018', 'max:' . $currentYear];
-            $rules['ktm_path'] = ['nullable', 'file', 'mimes:jpeg,png,jpg,pdf', 'max:2048'];
+            $rules['ktm_path'] = ['nullable', 'file', 'mimes:jpeg,png,jpg', 'max:2048'];
         } else {
-            $rules['id_card_path'] = ['nullable', 'file', 'mimes:jpeg,png,jpg,pdf', 'max:2048'];
+            $rules['id_card_path'] = ['nullable', 'file', 'mimes:jpeg,png,jpg', 'max:2048'];
         }
 
         return $rules;

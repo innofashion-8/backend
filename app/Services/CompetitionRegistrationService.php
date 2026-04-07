@@ -130,15 +130,28 @@ class CompetitionRegistrationService
         }
 
         $draft = $registration ? ($registration->draft_data ?? []) : [];
-        $draftFilesMoved = []; 
+        $draftFilesMoved = [];
+
+        if (!empty($dto->membersData)) {
+            $seenPhones = [];
+            foreach ($dto->membersData as $index => $memberData) {
+                $phone = $memberData['phone'];
+                if (in_array($phone, $seenPhones)) {
+                    throw ValidationException::withMessages([
+                        "members.{$index}.phone" => ["Nomor WhatsApp ini sudah digunakan oleh anggota lain dalam tim."]
+                    ]);
+                }
+                $seenPhones[] = $phone;
+            }
+        }
 
         DB::beginTransaction();
 
         try {
             $competition = Competition::findOrFail($dto->competitionId);
-            
+
             $totalMembers = 1 + count($dto->membersData);
-            
+
             if ($totalMembers < $competition->min_members || $totalMembers > $competition->max_members) {
                 throw ValidationException::withMessages([
                     'members' => ["Jumlah anggota tim (termasuk ketua) harus antara {$competition->min_members} sampai {$competition->max_members} orang."]
@@ -150,16 +163,15 @@ class CompetitionRegistrationService
 
             if ($competition->participant_type === ParticipantType::GROUP->value) {
                 $categoryToSave = CompetitionCategory::INTERMEDIATE->value;
-                
+
                 if (empty($groupNameToSave)) {
                     throw ValidationException::withMessages([
                         'group_name' => ['Nama grup wajib diisi untuk pendaftaran kelompok.']
                     ]);
                 }
-            } 
-            else {
+            } else {
                 $groupNameToSave = null;
-                
+
                 if (empty($categoryToSave)) {
                     throw ValidationException::withMessages([
                         'category' => ['Kategori lomba (Intermediate / Advanced) wajib dipilih.']
@@ -167,14 +179,12 @@ class CompetitionRegistrationService
                 }
             }
 
-
-            // 3. Data Pendaftaran Utama
             $dataToSave = [
-                'status' => StatusRegistration::PENDING,
-                'region' => $dto->region->value,
-                'category' => $categoryToSave,
+                'status'     => StatusRegistration::PENDING,
+                'region'     => $dto->region->value,
+                'category'   => $categoryToSave,
                 'group_name' => $groupNameToSave,
-                'draft_data' => null, 
+                'draft_data' => null,
             ];
 
             // 4. Simpan / Update Pendaftaran
@@ -182,38 +192,48 @@ class CompetitionRegistrationService
                 $registration->update($dataToSave);
                 $registration->members()->delete();
             } else {
-                $dataToSave['user_id'] = $dto->userId;
+                $dataToSave['user_id']        = $dto->userId;
                 $dataToSave['competition_id'] = $dto->competitionId;
                 $registration = $this->registration->create($dataToSave);
             }
 
             // 5. Masukkan Ketua (Leader)
             $registration->members()->create([
-                'user_id' => $dto->userId,
+                'user_id'      => $dto->userId,
                 'member_order' => 1
             ]);
 
             // 6. Proses Anggota Tim
             $memberOrder = 2;
             foreach ($dto->membersData as $index => $memberData) {
-                $email = $memberData['email'];
+                $email      = $memberData['email'];
                 $idCardPath = $dto->memberFiles[$email] ?? null;
 
-                // Penyelamatan file dari Draft (Optimalisasi)
+                // Penyelamatan file dari Draft
                 if (!$idCardPath && isset($draft['members'][$index]['id_card'])) {
                     $draftPath = $draft['members'][$index]['id_card'];
                     if (Storage::disk('public')->exists($draftPath)) {
-                        $filename = basename($draftPath);
+                        $filename   = basename($draftPath);
                         $idCardPath = "id_cards/{$filename}";
                         Storage::disk('public')->move($draftPath, $idCardPath);
-                        $draftFilesMoved[] = $draftPath; 
+                        $draftFilesMoved[] = $draftPath;
                     }
                 }
 
-                // Wajibkan file KTP untuk anggota tim kalau bukan dari draft
+                // Wajibkan file KTP
                 if (!$idCardPath) {
                     throw ValidationException::withMessages([
                         "members.{$index}.id_card" => ["File KTP/Kartu pelajar untuk anggota {$email} wajib dilampirkan."]
+                    ]);
+                }
+
+                $phoneExists = User::where('phone', $memberData['phone'])
+                    ->where('email', '!=', $email)
+                    ->exists();
+
+                if ($phoneExists) {
+                    throw ValidationException::withMessages([
+                        "members.{$index}.phone" => ["Nomor WhatsApp {$memberData['phone']} sudah terdaftar oleh pengguna lain."]
                     ]);
                 }
 
@@ -221,27 +241,33 @@ class CompetitionRegistrationService
                 $user = User::firstOrCreate(
                     ['email' => $email],
                     [
-                        'name' => $memberData['name'],
-                        'phone' => $memberData['phone'],
-                        'institution' => $registration->user->institution,
-                        'type' => $registration->user->type,
-                        'id_card_path' => $idCardPath,
+                        'name'                => $memberData['name'],
+                        'phone'               => $memberData['phone'],
+                        'institution'         => $registration->user->institution,
+                        'type'                => $registration->user->type,
+                        'id_card_path'        => $idCardPath,
                         'is_profile_complete' => false,
                     ]
                 );
 
-                if ($user->id_card_path !== $idCardPath && $idCardPath !== null) {
-                    $user->update(['id_card_path' => $idCardPath]);
+                if ($user->wasRecentlyCreated === false) {
+                    $updateData = ['id_card_path' => $idCardPath];
+                    // Update phone hanya kalau user belum punya phone (hindari overwrite data existing)
+                    if (empty($user->phone)) {
+                        $updateData['phone'] = $memberData['phone'];
+                    }
+                    $user->update($updateData);
                 }
 
                 $registration->members()->create([
-                    'user_id' => $user->id,
+                    'user_id'      => $user->id,
                     'member_order' => $memberOrder
                 ]);
 
                 $memberOrder++;
             }
 
+            // 7. Bersihkan sisa file draft lama
             if (isset($draft['members']) && is_array($draft['members'])) {
                 foreach ($draft['members'] as $draftMember) {
                     if (isset($draftMember['id_card'])) {
@@ -267,14 +293,14 @@ class CompetitionRegistrationService
             }
 
             foreach ($draftFilesMoved as $movedDraftPath) {
-                $filename = basename($movedDraftPath);
+                $filename  = basename($movedDraftPath);
                 $finalPath = "id_cards/{$filename}";
                 if (Storage::disk('public')->exists($finalPath)) {
                     Storage::disk('public')->move($finalPath, $movedDraftPath);
                 }
             }
 
-            throw $e; 
+            throw $e;
         }
     }
 

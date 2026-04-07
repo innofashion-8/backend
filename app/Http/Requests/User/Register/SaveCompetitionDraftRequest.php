@@ -26,7 +26,7 @@ class SaveCompetitionDraftRequest extends ApiRequest
             'draft_data.members'                   => ['nullable', 'array'],
             'draft_data.members.*.name'       => ['nullable', 'string', 'max:255'],
             'draft_data.members.*.email'           => ['nullable', 'email'],
-            'draft_data.members.*.phone'  => ['nullable', 'string', 'max:20'],
+            'draft_data.members.*.phone'  => ['nullable', 'string', 'max:20', 'unique:users,phone,' . $this->user()->id . ',id'],
             
             // Validasi File KTP Anggota (hanya dicek kalau dia nge-upload file)
             'draft_data.members.*.id_card'         => [
@@ -61,6 +61,7 @@ class SaveCompetitionDraftRequest extends ApiRequest
             'draft_data.members.*.email.email' => 'Member email must be a valid email address.',
             'draft_data.members.*.phone.string' => 'Member phone must be a valid text.',
             'draft_data.members.*.phone.max' => 'Member phone cannot exceed 20 characters.',
+            'draft_data.members.*.phone.unique' => 'Member phone number is already registered.',
 
             // Member ID Card
             'draft_data.members.*.id_card.file' => 'Member ID card must be a valid file.',
