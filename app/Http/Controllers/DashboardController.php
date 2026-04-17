@@ -7,6 +7,7 @@ use App\Models\Event;
 use App\Models\Competition;
 use App\Models\EventRegistration;
 use App\Models\CompetitionRegistration;
+use App\Enum\StatusRegistration;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -14,18 +15,20 @@ class DashboardController extends Controller
     public function getStats()
     {
         $eventStats = [
-            'total' => EventRegistration::count(),
-            'validated' => EventRegistration::where('status', 'verified')->count(),
-            'pending' => EventRegistration::where('status', 'pending')->count(),
+            'total' => EventRegistration::where('status', '!=', StatusRegistration::DRAFT)->count(),
+            'validated' => EventRegistration::where('status', StatusRegistration::VERIFIED)->count(),
+            'pending' => EventRegistration::where('status', StatusRegistration::PENDING)->count(),
         ];
 
         $compStats = [
-            'total' => CompetitionRegistration::count(),
-            'validated' => CompetitionRegistration::where('status', 'verified')->count(),
-            'pending' => CompetitionRegistration::where('status', 'pending')->count(),
+            'total' => CompetitionRegistration::where('status', '!=', StatusRegistration::DRAFT)->count(),
+            'validated' => CompetitionRegistration::where('status', StatusRegistration::VERIFIED)->count(),
+            'pending' => CompetitionRegistration::where('status', StatusRegistration::PENDING)->count(),
         ];
 
-        $eventBreakdown = Event::withCount('eventRegistrations')
+        $eventBreakdown = Event::withCount(['eventRegistrations' => function ($query) {
+            $query->where('status', '!=', StatusRegistration::DRAFT);
+        }])
             ->get()
             ->map(function ($event) {
                 return [
@@ -34,7 +37,9 @@ class DashboardController extends Controller
                 ];
             });
 
-        $compBreakdown = Competition::withCount('competitionRegistrations')
+        $compBreakdown = Competition::withCount(['competitionRegistrations' => function ($query) {
+            $query->where('status', '!=', StatusRegistration::DRAFT);
+        }])
             ->get()
             ->map(function ($comp) {
                 return [
