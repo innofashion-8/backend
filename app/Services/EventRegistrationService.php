@@ -49,6 +49,7 @@ class EventRegistrationService
     {
         $query = $this->registration->query()
             ->with(['user', 'event'])
+            ->where('status', '!=', StatusRegistration::DRAFT)
             ->latest();
 
         if ($filter->eventId) {
