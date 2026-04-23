@@ -12,6 +12,8 @@ use App\Http\Requests\User\Register\SubmitEventRequest;
 use App\Services\EventRegistrationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\EventRegistrationsExport;
 
 class EventRegistrationController extends Controller
 {
@@ -27,6 +29,11 @@ class EventRegistrationController extends Controller
         $filters = EventFilterDTO::fromRequest($request);
         $registrations = $this->registrationService->getAll($filters);
         return $this->success("Data fetched successfully", $registrations);
+    }
+
+    public function exportRegistrations()
+    {
+        return Excel::download(new EventRegistrationsExport, 'event_registrations.xlsx');
     }
 
     public function checkStatus(Request $request, $key)

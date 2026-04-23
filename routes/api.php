@@ -52,13 +52,17 @@ Route::middleware('auth:admin')->group(function() {
         Route::post('/impersonate', [AuthController::class, 'impersonate']);
         Route::get('/dashboard/stats', [DashboardController::class, 'getStats']);
         Route::middleware(['permission:manage_users'])->group(function() {
+            Route::get('/users/export', [UserController::class, 'exportUsers']);
             Route::get('/users', [UserController::class, 'index']);
             Route::get('/users/{id}', [UserController::class, 'show']);
         });
 
         Route::middleware(['permission:manage_registrations'])->group(function() {
+            Route::get('/registrations/competitions/export', [CompetitionRegistrationController::class, 'exportRegistrations']);
             Route::get('/registrations/competitions', [CompetitionRegistrationController::class, 'index']);
             Route::patch('/registrations/competitions/{id}/status', [CompetitionRegistrationController::class, 'updateStatus']);
+            
+            Route::get('/registrations/events/export', [EventRegistrationController::class, 'exportRegistrations']);
             Route::get('/registrations/events', [EventRegistrationController::class, 'index']);
             Route::patch('/registrations/events/{id}/status', [EventRegistrationController::class, 'updateStatus']);
         });

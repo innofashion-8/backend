@@ -16,6 +16,8 @@ use App\Http\Requests\User\SubmissionRequest;
 use App\Services\CompetitionRegistrationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\CompetitionRegistrationsExport;
 
 class CompetitionRegistrationController extends Controller
 {
@@ -31,6 +33,11 @@ class CompetitionRegistrationController extends Controller
         $filters = CompetitionFilterDTO::fromRequest($request);
         $registrations = $this->registrationService->getAll($filters);
         return $this->success("Data fetched successfully", $registrations);
+    }
+
+    public function exportRegistrations()
+    {
+        return Excel::download(new CompetitionRegistrationsExport, 'competition_registrations.xlsx');
     }
 
     public function checkStatus(Request $request, $key)
