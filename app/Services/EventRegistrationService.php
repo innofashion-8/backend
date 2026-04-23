@@ -59,10 +59,31 @@ class EventRegistrationService
             $query->where('status', $filter->status);
         }
 
+        if ($filter->eventName) {
+            $evtName = $filter->eventName;
+            $query->whereHas('event', function ($q) use ($evtName) {
+                $q->where('title', $evtName);
+            });
+        }
+
+        if ($filter->userType) {
+            $userType = $filter->userType;
+            $query->whereHas('user', function ($q) use ($userType) {
+                $q->where('type', $userType);
+            });
+        }
+
         if ($filter->search) {
-            $query->whereHas('user', function ($q) use ($filter) {
-                $q->where('name', 'like', '%' . $filter->search . '%')
-                  ->orWhere('email', 'like', '%' . $filter->search . '%');
+            $search = $filter->search;
+            $query->where(function($q) use ($search) {
+                $q->whereHas('user', function ($userQ) use ($search) {
+                    $userQ->where('name', 'like', '%' . $search . '%')
+                      ->orWhere('email', 'like', '%' . $search . '%')
+                      ->orWhere('nrp', 'like', '%' . $search . '%');
+                })
+                ->orWhereHas('event', function ($evtQ) use ($search) {
+                    $evtQ->where('title', 'like', '%' . $search . '%');
+                });
             });
         }
 
