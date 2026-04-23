@@ -11,7 +11,9 @@ class EventRegistrationsExport implements FromCollection, WithHeadings, WithMapp
 {
     public function collection()
     {
-        $registrations = EventRegistration::with(['event', 'user'])->get();
+        $registrations = EventRegistration::with(['event', 'user'])
+            ->where('status', '!=', 'DRAFT')
+            ->get();
         $exportData = [];
 
         foreach ($registrations as $reg) {
