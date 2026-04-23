@@ -2,6 +2,7 @@
 
 namespace App\Exports;
 
+use App\Enum\StatusRegistration;
 use App\Models\EventRegistration;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -12,13 +13,13 @@ class EventRegistrationsExport implements FromCollection, WithHeadings, WithMapp
     public function collection()
     {
         $registrations = EventRegistration::with(['event', 'user'])
-            ->where('status', '!=', 'DRAFT')
+            ->where('status', '!=', StatusRegistration::DRAFT)
             ->get();
         $exportData = [];
 
         foreach ($registrations as $reg) {
             $mUser = $reg->user;
-            
+
             $idCardLink = '-';
             if ($mUser && $mUser->ktm_path) {
                 $idCardLink = url('storage/' . $mUser->ktm_path);

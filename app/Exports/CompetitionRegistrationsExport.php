@@ -2,6 +2,7 @@
 
 namespace App\Exports;
 
+use App\Enum\ParticipantType;
 use App\Enum\StatusRegistration;
 use App\Models\CompetitionRegistration;
 use Maatwebsite\Excel\Concerns\FromCollection;
@@ -34,7 +35,7 @@ class CompetitionRegistrationsExport implements FromCollection, WithHeadings, Wi
                         'region' => ($reg->region?->value ?? $reg->region) ?: '-',
                         'category' => ($reg->category?->value ?? $reg->category) ?: '-',
                         'status' => ($reg->status?->value ?? $reg->status) ?: '-',
-                        'member_order' => ($reg->competition?->participant_type === 'INDIVIDUAL' || $reg->competition?->participant_type?->value === 'INDIVIDUAL') ? 'Single' : ($member->member_order == 1 ? 'Leader' : 'Member ' . $member->member_order),
+                        'member_order' => ($reg->competition?->participant_type === 'INDIVIDUAL' || $reg->competition?->participant_type === ParticipantType::INDIVIDUAL) ? 'Single' : ($member->member_order == 1 ? 'Leader' : 'Member ' . $member->member_order),
                         'name' => $mUser ? ($mUser->name ?: '-') : '-',
                         'email' => $mUser ? ($mUser->email ?: '-') : '-',
                         'phone' => $mUser ? ($mUser->phone ?: '-') : '-',
