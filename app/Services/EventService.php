@@ -16,7 +16,8 @@ class EventService
     }
     public function getEventByKey(string $key)
     {
-        $query = $this->event->where('is_active', true);
+        $query = $this->event->where('is_active', true)
+                            ->withCount('eventRegistrations');
 
         if (Str::isUuid($key)) {
             $query->where('id', $key);
@@ -30,6 +31,7 @@ class EventService
     public function getEvents()
     {
         $events = $this->event->where('is_active', true)
+                    ->withCount('eventRegistrations')
                     ->orderBy('start_time', 'asc')
                     ->get();
         return EventResource::collection($events);
