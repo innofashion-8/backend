@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Data\EventDTO;
+use App\Enum\StatusRegistration;
 use App\Http\Resources\EventResource;
 use App\Models\Event;
 use Illuminate\Support\Str;
@@ -17,7 +18,9 @@ class EventService
     public function getEventByKey(string $key)
     {
         $query = $this->event->where('is_active', true)
-                            ->withCount('eventRegistrations');
+                            ->withCount(['eventRegistrations' => function ($query) {
+                                $query->where('status', '!=', StatusRegistration::DRAFT);
+                            }]);
 
         if (Str::isUuid($key)) {
             $query->where('id', $key);
@@ -31,7 +34,9 @@ class EventService
     public function getEvents()
     {
         $events = $this->event->where('is_active', true)
-                    ->withCount('eventRegistrations')
+                    ->withCount(['eventRegistrations' => function ($query) {
+                        $query->where('status', '!=', StatusRegistration::DRAFT);
+                    }])
                     ->orderBy('start_time', 'asc')
                     ->get();
         return EventResource::collection($events);
@@ -50,6 +55,11 @@ class EventService
             'start_time'  => $dto->start_time,
             'is_active'   => $dto->is_active,
         ]);
+        
+        $event->loadCount(['eventRegistrations' => function ($query) {
+            $query->where('status', '!=', StatusRegistration::DRAFT);
+        }]);
+        
         return $event;
     }
 
@@ -71,6 +81,10 @@ class EventService
         }
 
         $event->update($dataToUpdate);
+        
+        $event->loadCount(['eventRegistrations' => function ($query) {
+            $query->where('status', '!=', StatusRegistration::DRAFT);
+        }]);
 
         return $event;
     }
