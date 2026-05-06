@@ -143,4 +143,15 @@ class EventRegistrationController extends Controller
 
         return $this->success($message, $data);
     }
+
+    public function userScanCheckIn(Request $request)
+    {
+        $request->validate([
+            'token' => 'required|string'
+        ]);
+
+        $result = $this->registrationService->processUserScanCheckIn($request->user(), $request->token);
+
+        return $this->success("ACCESS GRANTED. Kehadiran Anda telah dicatat.", $result);
+    }
 }

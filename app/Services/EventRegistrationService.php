@@ -14,6 +14,7 @@ use App\Models\Event;
 use App\Models\EventRegistration;
 use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -333,6 +334,67 @@ class EventRegistrationService
                 'item_name' => $itemName,
             ];
 
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+    public function processUserScanCheckIn($user, $token)
+    {
+        try {
+            $payload = json_decode(Crypt::decryptString($token));
+        } catch (\Exception $e) {
+            throw ValidationException::withMessages([
+                'token' => ['INVALID PROTOCOL: QR Code tidak valid atau rusak.']
+            ]);
+        }
+        
+        if (!isset($payload->event_id) || !isset($payload->exp)) {
+             throw ValidationException::withMessages([
+                'token' => ['INVALID PROTOCOL: Format QR Code tidak sesuai.']
+            ]);
+        }
+    
+        if (now()->timestamp > $payload->exp) {
+            throw ValidationException::withMessages([
+                'token' => ['EXPIRED PROTOCOL: QR Code sudah kadaluarsa. Silakan scan ulang.']
+            ]);
+        }
+    
+        $registration = EventRegistration::with('event')
+            ->where('user_id', $user->id)
+            ->where('event_id', $payload->event_id)
+            ->first();
+    
+        if (!$registration) {
+            throw ValidationException::withMessages([
+                'status' => ['ACCESS DENIED: Anda belum terdaftar di event ini.']
+            ]);
+        }
+    
+        if ($registration->status !== StatusRegistration::VERIFIED) {
+            throw ValidationException::withMessages([
+                'status' => ["ACCESS DENIED: Status pendaftaran Anda masih {$registration->status->value}."]
+            ]);
+        }
+    
+        if ($registration->attended) {
+            throw ValidationException::withMessages([
+                'attended' => ['TICKET EXPIRED: Anda sudah melakukan Check-In sebelumnya!']
+            ]);
+        }
+    
+        DB::beginTransaction();
+        try {
+            $registration->update([
+                'attended' => true,
+            ]);
+            DB::commit();
+    
+            return [
+                'event_name' => $registration->event->title,
+            ];
         } catch (\Exception $e) {
             DB::rollBack();
             throw $e;
