@@ -52,6 +52,10 @@ class EventService
             'price'       => $dto->price,
             'quota'       => $dto->quota,
             'wa_link'     => $dto->wa_link,
+            'bank_name'            => $dto->bank_name,
+            'bank_account_name'    => $dto->bank_account_name,
+            'bank_account_number'  => $dto->bank_account_number,
+            'transfer_note_format' => $dto->transfer_note_format,
             'start_time'  => $dto->start_time,
             'is_active'   => $dto->is_active,
         ]);
@@ -72,6 +76,10 @@ class EventService
             'price'       => $dto->price,
             'quota'       => $dto->quota,
             'wa_link'     => $dto->wa_link,
+            'bank_name'            => $dto->bank_name,
+            'bank_account_name'    => $dto->bank_account_name,
+            'bank_account_number'  => $dto->bank_account_number,
+            'transfer_note_format' => $dto->transfer_note_format,
             'start_time'  => $dto->start_time,
             'is_active'   => $dto->is_active,
         ];
