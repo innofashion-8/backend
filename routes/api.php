@@ -9,7 +9,7 @@ use App\Http\Controllers\EventRegistrationController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('auth')->group(function() {
+Route::prefix('auth')->group(function () {
     // Route::post('/register', [AuthController::class, 'register']);
     // Route::post('/login', [AuthController::class, 'login']);
     Route::post('/login/google', [AuthController::class, 'googleLogin']);
@@ -33,54 +33,56 @@ Route::middleware('auth:user')->group(function () {
     Route::post('/complete-registration/draft', [UserController::class, 'saveDraft']);
     Route::post('/complete-registration/submit', [UserController::class, 'submitRegister']);
     Route::get('/registrations', [UserController::class, 'getRegistrations']);
-    Route::prefix('competitions')->group(function() {
+    Route::prefix('competitions')->group(function () {
         Route::post('/{key}/submit', [CompetitionRegistrationController::class, 'submitFinal']);
         Route::post('/{key}/submission', [CompetitionRegistrationController::class, 'uploadSubmission']);
         Route::get('/{key}/status', [CompetitionRegistrationController::class, 'checkStatus']);
         Route::post('/{key}/draft', [CompetitionRegistrationController::class, 'saveDraft']);
     });
 
-    Route::prefix('events')->group(function() {
+    Route::prefix('events')->group(function () {
         Route::post('/{key}/submit', [EventRegistrationController::class, 'submitFinal']);
         Route::get('/{key}/status', [EventRegistrationController::class, 'checkStatus']);
         Route::post('/{key}/draft', [EventRegistrationController::class, 'saveDraft']);
+        Route::post('/scan-attendance', [EventRegistrationController::class, 'userScanCheckIn']);
     });
 });
 
-Route::middleware('auth:admin')->group(function() {
-    Route::prefix('admin')->group(function() {
+Route::middleware('auth:admin')->group(function () {
+    Route::prefix('admin')->group(function () {
         Route::post('/impersonate', [AuthController::class, 'impersonate']);
         Route::get('/dashboard/stats', [DashboardController::class, 'getStats']);
-        Route::middleware(['permission:manage_users'])->group(function() {
+        Route::middleware(['permission:manage_users'])->group(function () {
             Route::get('/users/export', [UserController::class, 'exportUsers']);
             Route::get('/users', [UserController::class, 'index']);
             Route::get('/users/{id}', [UserController::class, 'show']);
         });
 
-        Route::middleware(['permission:manage_registrations'])->group(function() {
+        Route::middleware(['permission:manage_registrations'])->group(function () {
             Route::get('/registrations/competitions/export', [CompetitionRegistrationController::class, 'exportRegistrations']);
             Route::get('/registrations/competitions', [CompetitionRegistrationController::class, 'index']);
             Route::patch('/registrations/competitions/{id}/status', [CompetitionRegistrationController::class, 'updateStatus']);
-            
+
             Route::get('/registrations/events/export', [EventRegistrationController::class, 'exportRegistrations']);
             Route::get('/registrations/events', [EventRegistrationController::class, 'index']);
             Route::patch('/registrations/events/{id}/status', [EventRegistrationController::class, 'updateStatus']);
         });
 
-        Route::middleware(['permission:manage_events'])->prefix('events')->group(function() {
+        Route::middleware(['permission:manage_events'])->prefix('events')->group(function () {
             Route::post('/', [EventController::class, 'store']);
-            Route::put('/{key}', [EventController::class, 'update']);  
+            Route::put('/{key}', [EventController::class, 'update']);
             Route::delete('/{key}', [EventController::class, 'destroy']);
         });
 
-        Route::middleware(['permission:manage_competitions'])->prefix('competitions')->group(function() {
+        Route::middleware(['permission:manage_competitions'])->prefix('competitions')->group(function () {
             Route::post('/', [CompetitionController::class, 'store']);
             Route::put('/{key}', [CompetitionController::class, 'update']);
             Route::delete('/{key}', [CompetitionController::class, 'destroy']);
         });
 
-        Route::middleware(['permission:scan_attendance'])->prefix('scan')->group(function() {
+        Route::middleware(['permission:scan_attendance'])->prefix('scan')->group(function () {
             Route::post('/attendance', [EventRegistrationController::class, 'checkIn']);
         });
+        Route::get('/events/{key}/rotating-qr', [EventController::class, 'getRotatingQr']);
     });
 });
