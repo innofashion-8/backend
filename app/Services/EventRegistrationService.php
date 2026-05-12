@@ -400,4 +400,34 @@ class EventRegistrationService
             throw $e;
         }
     }
+
+    public function updateAttendance(string $id, bool $attended)
+    {
+        $registration = $this->registration->with('user', 'event')->find($id);
+
+        if (!$registration) {
+            throw ValidationException::withMessages([
+                'id' => ['Pendaftaran tidak ditemukan.']
+            ]);
+        }
+
+        if ($registration->status !== StatusRegistration::VERIFIED) {
+            throw ValidationException::withMessages([
+                'status' => ['Hanya pendaftaran dengan status VERIFIED yang dapat diupdate kehadirannya.']
+            ]);
+        }
+
+        DB::beginTransaction();
+        try {
+            $registration->update([
+                'attended' => $attended,
+            ]);
+            DB::commit();
+
+            return $registration;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
 }

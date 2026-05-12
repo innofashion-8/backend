@@ -6,6 +6,7 @@ use App\Data\EventFilterDTO;
 use App\Data\SaveDraftDTO;
 use App\Enum\StatusRegistration;
 use App\Http\Requests\Admin\CheckInRequest;
+use App\Http\Requests\Admin\UpdateAttendanceRequest;
 use App\Http\Requests\Admin\UpdateStatusRequest;
 use App\Http\Requests\User\Register\SaveDraftRequest;
 use App\Http\Requests\User\Register\SubmitEventRequest;
@@ -131,6 +132,15 @@ class EventRegistrationController extends Controller
         $registration = $this->registrationService->updateStatus($dto);
 
         return $this->success("Status pendaftaran berhasil diubah", $registration);
+    }
+
+    public function updateAttendance(UpdateAttendanceRequest $request, $id)
+    {
+        $attended = $request->validated('attended');
+
+        $registration = $this->registrationService->updateAttendance($id, $attended);
+
+        return $this->success("Kehadiran berhasil diupdate", $registration);
     }
 
     public function checkIn(CheckInRequest $request)
