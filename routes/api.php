@@ -66,6 +66,7 @@ Route::middleware('auth:admin')->group(function () {
             Route::get('/registrations/events/export', [EventRegistrationController::class, 'exportRegistrations']);
             Route::get('/registrations/events', [EventRegistrationController::class, 'index']);
             Route::patch('/registrations/events/{id}/status', [EventRegistrationController::class, 'updateStatus']);
+            Route::patch('/registrations/events/{id}/attendance', [EventRegistrationController::class, 'updateAttendance']);
         });
 
         Route::middleware(['permission:manage_events'])->prefix('events')->group(function () {
