@@ -40,17 +40,15 @@ class Admin extends Authenticatable
                 'kabid' => 'bph',
             ];
 
-            $targetRole = $specialMap[$slug] ?? $slug;
+            $targetRoleName = $specialMap[$slug] ?? $slug;
 
-            $roleExists = Role::where('name', $targetRole)
-                            ->where('guard_name', 'admin')
-                            ->exists();
+            // Best practice: Ensure the role exists safely, then sync using the Role model instance
+            $role = Role::firstOrCreate([
+                'name' => $targetRoleName,
+                'guard_name' => 'admin'
+            ]);
 
-            if ($roleExists) {
-                $this->syncRoles($targetRole);
-            } else {
-                $this->syncRoles('admin');
-            }
+            $this->syncRoles([$role]);
         }
     }
 
