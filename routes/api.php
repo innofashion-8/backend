@@ -1,11 +1,14 @@
 <?php
 
+use App\Http\Controllers\AdminManagementController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompetitionController;
 use App\Http\Controllers\CompetitionRegistrationController;
+use App\Http\Controllers\DivisionController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\EventRegistrationController;
+use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -85,5 +88,38 @@ Route::middleware('auth:admin')->group(function () {
             Route::post('/attendance', [EventRegistrationController::class, 'checkIn']);
         });
         Route::get('/events/{key}/rotating-qr', [EventController::class, 'getRotatingQr']);
+
+        Route::middleware(['permission:manage_divisions'])->prefix('divisions')->group(function () {
+            Route::get('/', [DivisionController::class, 'index']);
+            Route::get('/{id}', [DivisionController::class, 'show']);
+            Route::post('/', [DivisionController::class, 'store']);
+            Route::put('/{id}', [DivisionController::class, 'update']);
+            Route::delete('/{id}', [DivisionController::class, 'destroy']);
+        });
+
+        Route::middleware(['permission:manage_admins'])->prefix('admins')->group(function () {
+            Route::get('/', [AdminManagementController::class, 'index']);
+            Route::get('/{id}', [AdminManagementController::class, 'show']);
+            Route::post('/', [AdminManagementController::class, 'store']);
+            Route::put('/{id}', [AdminManagementController::class, 'update']);
+            Route::delete('/{id}', [AdminManagementController::class, 'destroy']);
+        });
+
+        Route::middleware(['permission:manage_admins'])->prefix('roles-permissions')->group(function () {
+            // Roles
+            Route::get('/roles', [RolePermissionController::class, 'indexRoles']);
+            Route::get('/roles/{id}', [RolePermissionController::class, 'showRole']);
+            Route::post('/roles', [RolePermissionController::class, 'storeRole']);
+            Route::put('/roles/{id}', [RolePermissionController::class, 'updateRole']);
+            Route::delete('/roles/{id}', [RolePermissionController::class, 'destroyRole']);
+            Route::post('/roles/{roleId}/permissions', [RolePermissionController::class, 'assignPermissions']);
+
+            // Permissions
+            Route::get('/permissions', [RolePermissionController::class, 'indexPermissions']);
+            Route::get('/permissions/{id}', [RolePermissionController::class, 'showPermission']);
+            Route::post('/permissions', [RolePermissionController::class, 'storePermission']);
+            Route::put('/permissions/{id}', [RolePermissionController::class, 'updatePermission']);
+            Route::delete('/permissions/{id}', [RolePermissionController::class, 'destroyPermission']);
+        });
     });
 });
