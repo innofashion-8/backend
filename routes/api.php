@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompetitionController;
 use App\Http\Controllers\CompetitionRegistrationController;
 use App\Http\Controllers\DivisionController;
+use App\Http\Controllers\EvaluationQuestionController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\EventRegistrationController;
 use App\Http\Controllers\RolePermissionController;
@@ -48,6 +49,8 @@ Route::middleware('auth:user')->group(function () {
         Route::get('/{key}/status', [EventRegistrationController::class, 'checkStatus']);
         Route::post('/{key}/draft', [EventRegistrationController::class, 'saveDraft']);
         Route::post('/scan-attendance', [EventRegistrationController::class, 'userScanCheckIn']);
+        Route::get('/{key}/evaluation-questions', [EventRegistrationController::class, 'getEvaluationQuestions']);
+        Route::post('/{key}/evaluation', [EventRegistrationController::class, 'submitEvaluation']);
     });
 });
 
@@ -76,6 +79,15 @@ Route::middleware('auth:admin')->group(function () {
             Route::post('/', [EventController::class, 'store']);
             Route::put('/{key}', [EventController::class, 'update']);
             Route::delete('/{key}', [EventController::class, 'destroy']);
+
+            // Evaluation Questions
+            Route::get('/{eventId}/evaluation-questions', [EvaluationQuestionController::class, 'index']);
+            Route::post('/{eventId}/evaluation-questions', [EvaluationQuestionController::class, 'store']);
+            Route::put('/{eventId}/evaluation-questions/{id}', [EvaluationQuestionController::class, 'update']);
+            Route::delete('/{eventId}/evaluation-questions/{id}', [EvaluationQuestionController::class, 'destroy']);
+            Route::patch('/{eventId}/evaluation-questions/reorder', [EvaluationQuestionController::class, 'reorder']);
+            Route::post('/{eventId}/evaluation-questions/import', [EvaluationQuestionController::class, 'importQuestions']);
+            Route::get('/{eventId}/evaluation-responses', [EvaluationQuestionController::class, 'responses']);
         });
 
         Route::middleware(['permission:manage_competitions'])->prefix('competitions')->group(function () {
