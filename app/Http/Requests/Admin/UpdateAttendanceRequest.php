@@ -22,7 +22,7 @@ class UpdateAttendanceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'attended' => ['required', 'boolean'],
+            'attended' => ['required', 'string', 'in:pending,checked_in,checked_out'],
         ];
     }
 
@@ -30,7 +30,8 @@ class UpdateAttendanceRequest extends FormRequest
     {
         return [
             'attended.required' => 'Attendance status is required.',
-            'attended.boolean' => 'Attendance status must be true or false.',
+            'attended.string' => 'Attendance status must be a string.',
+            'attended.in' => 'Attendance status is invalid.',
         ];
     }
 }
