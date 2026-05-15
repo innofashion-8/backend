@@ -37,4 +37,9 @@ class Event extends Model
     {
         return $this->hasMany(EventRegistration::class, 'event_id', 'id');
     }
+
+    public function evaluationQuestions()
+    {
+        return $this->hasMany(EvaluationQuestion::class, 'event_id', 'id');
+    }
 }
