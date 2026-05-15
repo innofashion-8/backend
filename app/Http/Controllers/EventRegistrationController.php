@@ -164,4 +164,33 @@ class EventRegistrationController extends Controller
 
         return $this->success("ACCESS GRANTED. Kehadiran Anda telah dicatat.", $result);
     }
+
+    public function getEvaluationQuestions(Request $request, $key)
+    {
+        $event = $this->registrationService->findEvent($key);
+        $questions = $event->evaluationQuestions()
+            ->orderBy('sort_order')
+            ->orderBy('created_at')
+            ->get();
+
+        return $this->success("Pertanyaan evaluasi berhasil diambil", $questions);
+    }
+
+    public function submitEvaluation(Request $request, $key)
+    {
+        $request->validate([
+            'answers' => 'required|array',
+            'answers.*.question_id' => 'required|exists:evaluation_questions,id',
+            'answers.*.value' => 'nullable',
+        ]);
+
+        $event = $this->registrationService->findEvent($key);
+        $result = $this->registrationService->submitEvaluationAndCheckOut(
+            $request->user(),
+            $event->id,
+            $request->answers
+        );
+
+        return $this->success($result['status'], $result);
+    }
 }

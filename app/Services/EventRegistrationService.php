@@ -6,10 +6,15 @@ use App\Data\EventFilterDTO;
 use App\Data\SaveDraftDTO;
 use App\Data\SubmitEventDTO;
 use App\Data\UpdateStatusDTO;
+use App\Enum\AttendedStatus;
+use App\Enum\QuestionType;
 use App\Enum\StatusRegistration;
 use App\Enum\UserType;
 use App\Mail\RegistrationRejected;
 use App\Mail\RegistrationVerified;
+use App\Models\Evaluation;
+use App\Models\EvaluationAnswer;
+use App\Models\EvaluationQuestion;
 use App\Models\Event;
 use App\Models\EventRegistration;
 use App\Models\User;
@@ -311,20 +316,27 @@ class EventRegistrationService
 
         if ($registration->status !== StatusRegistration::VERIFIED) {
             throw ValidationException::withMessages([
-                'status' => ["ACCESS DENIED: Status pendaftaran peserta masih {$registration->status}."]
+                'status' => ["ACCESS DENIED: Status pendaftaran peserta masih {$registration->status->value}."]
             ]);
         }
 
-        if ($registration->attended) {
+        if ($registration->attended_status === AttendedStatus::CHECKED_IN) {
             throw ValidationException::withMessages([
-                'attended' => ['TICKET EXPIRED: Peserta ini sudah melakukan Check-In sebelumnya!']
+                'attended_status' => ['TICKET EXPIRED: Peserta ini sudah melakukan Check-In sebelumnya!']
+            ]);
+        }
+
+        if ($registration->attended_status === AttendedStatus::CHECKED_OUT) {
+            throw ValidationException::withMessages([
+                'attended_status' => ['SESSION TERMINATED: Peserta ini sudah melakukan Check-Out sebelumnya!']
             ]);
         }
 
         DB::beginTransaction();
         try {
             $registration->update([
-                'attended' => true,
+                'attended_status' => AttendedStatus::CHECKED_IN,
+                'check_in_at'     => now(),
             ]);
             DB::commit();
 
@@ -379,16 +391,23 @@ class EventRegistrationService
             ]);
         }
     
-        if ($registration->attended) {
+        if ($registration->attended_status === AttendedStatus::CHECKED_IN) {
             throw ValidationException::withMessages([
-                'attended' => ['TICKET EXPIRED: Anda sudah melakukan Check-In sebelumnya!']
+                'attended_status' => ['TICKET EXPIRED: Anda sudah melakukan Check-In sebelumnya!']
+            ]);
+        }
+
+        if ($registration->attended_status === AttendedStatus::CHECKED_OUT) {
+            throw ValidationException::withMessages([
+                'attended_status' => ['SESSION TERMINATED: Anda sudah melakukan Check-Out sebelumnya!']
             ]);
         }
     
         DB::beginTransaction();
         try {
             $registration->update([
-                'attended' => true,
+                'attended_status' => AttendedStatus::CHECKED_IN,
+                'check_in_at'     => now(),
             ]);
             DB::commit();
     
@@ -401,7 +420,7 @@ class EventRegistrationService
         }
     }
 
-    public function updateAttendance(string $id, bool $attended)
+    public function updateAttendance(string $id, string $attended)
     {
         $registration = $this->registration->with('user', 'event')->find($id);
 
@@ -419,8 +438,21 @@ class EventRegistrationService
 
         DB::beginTransaction();
         try {
+            $status = AttendedStatus::from($attended);
+            $checkInAt = $registration->check_in_at;
+            $checkOutAt = $registration->check_out_at;
+
+            if ($status === AttendedStatus::CHECKED_IN && !$checkInAt) {
+                $checkInAt = now();
+            }
+            if ($status === AttendedStatus::CHECKED_OUT && !$checkOutAt) {
+                $checkOutAt = now();
+            }
+
             $registration->update([
-                'attended' => $attended,
+                'attended_status' => $status,
+                'check_in_at'     => $checkInAt,
+                'check_out_at'    => $checkOutAt,
             ]);
             DB::commit();
 
@@ -429,5 +461,134 @@ class EventRegistrationService
             DB::rollBack();
             throw $e;
         }
+    }
+
+    public function submitEvaluationAndCheckOut($user, string $eventId, array $answers)
+    {
+        $registration = EventRegistration::with('event')
+            ->where('user_id', $user->id)
+            ->where('event_id', $eventId)
+            ->first();
+
+        if (!$registration) {
+            throw ValidationException::withMessages([
+                'status' => ['ACCESS DENIED: Anda belum terdaftar di event ini.']
+            ]);
+        }
+
+        if ($registration->status !== StatusRegistration::VERIFIED) {
+            throw ValidationException::withMessages([
+                'status' => ["ACCESS DENIED: Status pendaftaran Anda masih {$registration->status->value}."]
+            ]);
+        }
+
+        if ($registration->attended_status === AttendedStatus::CHECKED_OUT) {
+            throw ValidationException::withMessages([
+                'attended_status' => ['SESSION TERMINATED: Anda sudah melakukan Check-Out dan pengisian evaluasi sebelumnya.']
+            ]);
+        }
+
+        if ($registration->attended_status !== AttendedStatus::CHECKED_IN) {
+            throw ValidationException::withMessages([
+                'attended_status' => ['PROTOCOL ERROR: Anda harus melakukan Check-In terlebih dahulu sebelum Check-Out.']
+            ]);
+        }
+
+        if ($registration->evaluation()->exists()) {
+            throw ValidationException::withMessages([
+                'evaluation' => ['SESSION TERMINATED: Evaluasi untuk sesi ini sudah pernah disubmit.']
+            ]);
+        }
+
+        $questions = EvaluationQuestion::where('event_id', $eventId)->get()->keyBy('id');
+        $answerMap = collect($answers)->keyBy('question_id');
+
+        // Filter out header questions (headers have no user answers)
+        foreach ($questions as $question) {
+            if ($question->type === 'header') {
+                continue;
+            }
+
+            $answer = $answerMap->get($question->id);
+            $value = $answer['value'] ?? null;
+
+            if ($question->is_required) {
+                if ($value === null || $value === '') {
+                    throw ValidationException::withMessages([
+                        'answers' => ["Pertanyaan '{$question->question_text}' wajib diisi."]
+                    ]);
+                }
+            }
+
+            if ($value === null || $value === '') {
+                continue;
+            }
+
+            if ($question->type === QuestionType::RATING && (!is_numeric($value) || (int) $value < 1 || (int) $value > 5)) {
+                throw ValidationException::withMessages([
+                    'answers' => ["Nilai rating untuk '{$question->question_text}' harus berada di antara 1 sampai 5."]
+                ]);
+            }
+
+            if ($question->type === QuestionType::MULTIPLE_CHOICE && !in_array($value, $question->options ?? [], true)) {
+                throw ValidationException::withMessages([
+                    'answers' => ["Pilihan untuk '{$question->question_text}' tidak valid."]
+                ]);
+            }
+        }
+
+        DB::beginTransaction();
+        try {
+            $evaluation = Evaluation::create([
+                'event_registration_id' => $registration->id,
+            ]);
+
+            foreach ($answers as $answer) {
+                if (!isset($answer['question_id']) || !$questions->has($answer['question_id'])) {
+                    continue;
+                }
+
+                $questionId = $answer['question_id'];
+                $question = $questions->get($questionId);
+
+                // Ignore header type payloads
+                if ($question && $question->type === 'header') {
+                    continue;
+                }
+
+                $value = $answer['value'] ?? null;
+
+                // If frontend didn't send anything for a non-required question, we can skip saving
+                if ($value === null || $value === '') {
+                    continue;
+                }
+
+                EvaluationAnswer::create([
+                    'evaluation_id'          => $evaluation->id,
+                    'evaluation_question_id' => $questionId,
+                    'answer_value'           => is_array($value) ? json_encode($value) : $value,
+                ]);
+            }
+
+            $registration->update([
+                'attended_status' => AttendedStatus::CHECKED_OUT,
+                'check_out_at'    => now(),
+            ]);
+
+            DB::commit();
+
+            return [
+                'event_name' => $registration->event->title,
+                'status'     => 'SESSION TERMINATED / CHECK-OUT SUCCESS',
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+    public function processCheckOutAndEvaluate($user, string $eventId, array $answers)
+    {
+        return $this->submitEvaluationAndCheckOut($user, $eventId, $answers);
     }
 }
