@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enum\AttendedStatus;
 use App\Enum\StatusRegistration;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -12,9 +13,11 @@ class EventRegistration extends Model
     protected $table = 'event_registrations';
 
     protected $casts = [
-        'draft_data' => 'array',
-        'status'     => StatusRegistration::class,
-        'attended'   => 'boolean',
+        'draft_data'      => 'array',
+        'status'          => StatusRegistration::class,
+        'attended_status' => AttendedStatus::class,
+        'check_in_at'     => 'datetime',
+        'check_out_at'    => 'datetime',
     ];
 
     protected $fillable = [
@@ -22,12 +25,12 @@ class EventRegistration extends Model
         'event_id',
         'verified_by',
         'draft_data',
-        // 'nrp',
-        // 'major',
         'payment_proof',
         'status',
         'rejection_reason',
-        'attended',
+        'attended_status',
+        'check_in_at',
+        'check_out_at',
     ];
 
     public function user()
@@ -43,5 +46,10 @@ class EventRegistration extends Model
     public function verifiedBy()
     {
         return $this->belongsTo(Admin::class, 'verified_by', 'id');
+    }
+
+    public function evaluation()
+    {
+        return $this->hasOne(Evaluation::class, 'event_registration_id', 'id');
     }
 }
