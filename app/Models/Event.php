@@ -17,6 +17,10 @@ class Event extends Model
         'price',
         'quota',
         'wa_link',
+        'bank_name',
+        'bank_account_name',
+        'bank_account_number',
+        'transfer_note_format',
         'start_time',
         'is_active',
     ];

@@ -9,6 +9,8 @@ use App\Http\Requests\User\UpdateProfileRequest;
 use App\Services\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\UsersExport;
 
 class UserController extends Controller
 {
@@ -23,6 +25,11 @@ class UserController extends Controller
     {
         $user = $this->userService->getUsers();
         return $this->success("User Data fetched", $user);
+    }
+
+    public function exportUsers()
+    {
+        return Excel::download(new UsersExport, 'users.xlsx');
     }
 
     public function show($id)

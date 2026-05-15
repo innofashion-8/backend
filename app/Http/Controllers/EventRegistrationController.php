@@ -6,12 +6,15 @@ use App\Data\EventFilterDTO;
 use App\Data\SaveDraftDTO;
 use App\Enum\StatusRegistration;
 use App\Http\Requests\Admin\CheckInRequest;
+use App\Http\Requests\Admin\UpdateAttendanceRequest;
 use App\Http\Requests\Admin\UpdateStatusRequest;
 use App\Http\Requests\User\Register\SaveDraftRequest;
 use App\Http\Requests\User\Register\SubmitEventRequest;
 use App\Services\EventRegistrationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\EventRegistrationsExport;
 
 class EventRegistrationController extends Controller
 {
@@ -27,6 +30,11 @@ class EventRegistrationController extends Controller
         $filters = EventFilterDTO::fromRequest($request);
         $registrations = $this->registrationService->getAll($filters);
         return $this->success("Data fetched successfully", $registrations);
+    }
+
+    public function exportRegistrations()
+    {
+        return Excel::download(new EventRegistrationsExport, 'event_registrations.xlsx');
     }
 
     public function checkStatus(Request $request, $key)
@@ -126,6 +134,15 @@ class EventRegistrationController extends Controller
         return $this->success("Status pendaftaran berhasil diubah", $registration);
     }
 
+    public function updateAttendance(UpdateAttendanceRequest $request, $id)
+    {
+        $attended = $request->validated('attended');
+
+        $registration = $this->registrationService->updateAttendance($id, $attended);
+
+        return $this->success("Kehadiran berhasil diupdate", $registration);
+    }
+
     public function checkIn(CheckInRequest $request)
     {
         $registrationId = $request->validated('registration_id');
@@ -135,5 +152,16 @@ class EventRegistrationController extends Controller
         $message = "ACCESS GRANTED. Selamat datang, {$data['user_name']} di {$data['type']} {$data['item_name']}.";
 
         return $this->success($message, $data);
+    }
+
+    public function userScanCheckIn(Request $request)
+    {
+        $request->validate([
+            'token' => 'required|string'
+        ]);
+
+        $result = $this->registrationService->processUserScanCheckIn($request->user(), $request->token);
+
+        return $this->success("ACCESS GRANTED. Kehadiran Anda telah dicatat.", $result);
     }
 }

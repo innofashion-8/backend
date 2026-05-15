@@ -6,6 +6,7 @@ use App\Http\Requests\Event\SaveEventRequest;
 use App\Http\Resources\EventResource;
 use App\Services\EventService;
 use App\Utils\HttpResponseCode;
+use Illuminate\Support\Facades\Crypt;
 
 class EventController extends Controller
 {
@@ -68,5 +69,17 @@ class EventController extends Controller
             null,
             HttpResponseCode::HTTP_OK
         );
+    }
+
+    public function getRotatingQr(string $key)
+    {
+        $event = $this->eventService->getEventByKey($key);
+        $payload = json_encode([
+            'event_id' => $event->id,
+            'exp' => now()->addSeconds(35)->timestamp
+        ]);
+        $token = Crypt::encryptString($payload);
+        
+        return $this->success("QR Token Generated", ['token' => $token], HttpResponseCode::HTTP_OK);
     }
 }

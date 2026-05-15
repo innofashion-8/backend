@@ -66,13 +66,37 @@ class CompetitionRegistrationService
             $query->where('status', $filters->status);
         }
 
+        if ($filters->competitionName) {
+            $compName = $filters->competitionName;
+            $query->whereHas('competition', function (Builder $q) use ($compName) {
+                $q->where('name', $compName);
+            });
+        }
+
+        if ($filters->category) {
+            $query->where('category', $filters->category);
+        }
+
+        if ($filters->userType) {
+            $userType = $filters->userType;
+            $query->whereHas('user', function (Builder $q) use ($userType) {
+                $q->where('type', $userType);
+            });
+        }
+
         if ($filters->search) {
             $search = $filters->search;
             
-            $query->whereHas('user', function (Builder $q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('nrp', 'like', "%{$search}%");
+            $query->where(function($q) use ($search) {
+                $q->whereHas('user', function (Builder $userQ) use ($search) {
+                    $userQ->where('name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%")
+                      ->orWhere('nrp', 'like', "%{$search}%");
+                })
+                ->orWhereHas('competition', function (Builder $compQ) use ($search) {
+                    $compQ->where('name', 'like', "%{$search}%");
+                })
+                ->orWhere('group_name', 'like', "%{$search}%");
             });
         }
 

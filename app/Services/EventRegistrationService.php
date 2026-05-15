@@ -14,6 +14,7 @@ use App\Models\Event;
 use App\Models\EventRegistration;
 use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -49,6 +50,7 @@ class EventRegistrationService
     {
         $query = $this->registration->query()
             ->with(['user', 'event'])
+            ->where('status', '!=', StatusRegistration::DRAFT)
             ->latest();
 
         if ($filter->eventId) {
@@ -59,10 +61,31 @@ class EventRegistrationService
             $query->where('status', $filter->status);
         }
 
+        if ($filter->eventName) {
+            $evtName = $filter->eventName;
+            $query->whereHas('event', function ($q) use ($evtName) {
+                $q->where('title', $evtName);
+            });
+        }
+
+        if ($filter->userType) {
+            $userType = $filter->userType;
+            $query->whereHas('user', function ($q) use ($userType) {
+                $q->where('type', $userType);
+            });
+        }
+
         if ($filter->search) {
-            $query->whereHas('user', function ($q) use ($filter) {
-                $q->where('name', 'like', '%' . $filter->search . '%')
-                  ->orWhere('email', 'like', '%' . $filter->search . '%');
+            $search = $filter->search;
+            $query->where(function($q) use ($search) {
+                $q->whereHas('user', function ($userQ) use ($search) {
+                    $userQ->where('name', 'like', '%' . $search . '%')
+                      ->orWhere('email', 'like', '%' . $search . '%')
+                      ->orWhere('nrp', 'like', '%' . $search . '%');
+                })
+                ->orWhereHas('event', function ($evtQ) use ($search) {
+                    $evtQ->where('title', 'like', '%' . $search . '%');
+                });
             });
         }
 
@@ -311,6 +334,97 @@ class EventRegistrationService
                 'item_name' => $itemName,
             ];
 
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+    public function processUserScanCheckIn($user, $token)
+    {
+        try {
+            $payload = json_decode(Crypt::decryptString($token));
+        } catch (\Exception $e) {
+            throw ValidationException::withMessages([
+                'token' => ['INVALID PROTOCOL: QR Code tidak valid atau rusak.']
+            ]);
+        }
+        
+        if (!isset($payload->event_id) || !isset($payload->exp)) {
+             throw ValidationException::withMessages([
+                'token' => ['INVALID PROTOCOL: Format QR Code tidak sesuai.']
+            ]);
+        }
+    
+        if (now()->timestamp > $payload->exp) {
+            throw ValidationException::withMessages([
+                'token' => ['EXPIRED PROTOCOL: QR Code sudah kadaluarsa. Silakan scan ulang.']
+            ]);
+        }
+    
+        $registration = EventRegistration::with('event')
+            ->where('user_id', $user->id)
+            ->where('event_id', $payload->event_id)
+            ->first();
+    
+        if (!$registration) {
+            throw ValidationException::withMessages([
+                'status' => ['ACCESS DENIED: Anda belum terdaftar di event ini.']
+            ]);
+        }
+    
+        if ($registration->status !== StatusRegistration::VERIFIED) {
+            throw ValidationException::withMessages([
+                'status' => ["ACCESS DENIED: Status pendaftaran Anda masih {$registration->status->value}."]
+            ]);
+        }
+    
+        if ($registration->attended) {
+            throw ValidationException::withMessages([
+                'attended' => ['TICKET EXPIRED: Anda sudah melakukan Check-In sebelumnya!']
+            ]);
+        }
+    
+        DB::beginTransaction();
+        try {
+            $registration->update([
+                'attended' => true,
+            ]);
+            DB::commit();
+    
+            return [
+                'event_name' => $registration->event->title,
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+    public function updateAttendance(string $id, bool $attended)
+    {
+        $registration = $this->registration->with('user', 'event')->find($id);
+
+        if (!$registration) {
+            throw ValidationException::withMessages([
+                'id' => ['Pendaftaran tidak ditemukan.']
+            ]);
+        }
+
+        if ($registration->status !== StatusRegistration::VERIFIED) {
+            throw ValidationException::withMessages([
+                'status' => ['Hanya pendaftaran dengan status VERIFIED yang dapat diupdate kehadirannya.']
+            ]);
+        }
+
+        DB::beginTransaction();
+        try {
+            $registration->update([
+                'attended' => $attended,
+            ]);
+            DB::commit();
+
+            return $registration;
         } catch (\Exception $e) {
             DB::rollBack();
             throw $e;

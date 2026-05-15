@@ -35,6 +35,10 @@ class SaveEventRequest extends ApiRequest
             'wa_link'     => 'required|url',
             'start_time'  => 'required|date',
             'is_active'   => 'sometimes|boolean',
+            'bank_name'            => 'nullable|string|max:100',
+            'bank_account_name'    => 'nullable|string|max:100',
+            'bank_account_number'  => 'nullable|string|max:50',
+            'transfer_note_format' => 'nullable|string|max:255',
         ];
     }
 
@@ -87,6 +91,10 @@ class SaveEventRequest extends ApiRequest
             wa_link: $data['wa_link'],
             start_time: Carbon::parse($data['start_time']),
             is_active: $data['is_active'] ?? true,
+            bank_name: $data['bank_name'] ?? null,
+            bank_account_name: $data['bank_account_name'] ?? null,
+            bank_account_number: $data['bank_account_number'] ?? null,
+            transfer_note_format: $data['transfer_note_format'] ?? null,
         );
     }
 }

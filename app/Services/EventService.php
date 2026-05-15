@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Data\EventDTO;
+use App\Enum\StatusRegistration;
 use App\Http\Resources\EventResource;
 use App\Models\Event;
 use Illuminate\Support\Str;
@@ -16,7 +17,10 @@ class EventService
     }
     public function getEventByKey(string $key)
     {
-        $query = $this->event->where('is_active', true);
+        $query = $this->event->where('is_active', true)
+                            ->withCount(['eventRegistrations' => function ($query) {
+                                $query->where('status', '!=', StatusRegistration::DRAFT);
+                            }]);
 
         if (Str::isUuid($key)) {
             $query->where('id', $key);
@@ -30,6 +34,9 @@ class EventService
     public function getEvents()
     {
         $events = $this->event->where('is_active', true)
+                    ->withCount(['eventRegistrations' => function ($query) {
+                        $query->where('status', '!=', StatusRegistration::DRAFT);
+                    }])
                     ->orderBy('start_time', 'asc')
                     ->get();
         return EventResource::collection($events);
@@ -45,9 +52,18 @@ class EventService
             'price'       => $dto->price,
             'quota'       => $dto->quota,
             'wa_link'     => $dto->wa_link,
+            'bank_name'            => $dto->bank_name,
+            'bank_account_name'    => $dto->bank_account_name,
+            'bank_account_number'  => $dto->bank_account_number,
+            'transfer_note_format' => $dto->transfer_note_format,
             'start_time'  => $dto->start_time,
             'is_active'   => $dto->is_active,
         ]);
+        
+        $event->loadCount(['eventRegistrations' => function ($query) {
+            $query->where('status', '!=', StatusRegistration::DRAFT);
+        }]);
+        
         return $event;
     }
 
@@ -60,6 +76,10 @@ class EventService
             'price'       => $dto->price,
             'quota'       => $dto->quota,
             'wa_link'     => $dto->wa_link,
+            'bank_name'            => $dto->bank_name,
+            'bank_account_name'    => $dto->bank_account_name,
+            'bank_account_number'  => $dto->bank_account_number,
+            'transfer_note_format' => $dto->transfer_note_format,
             'start_time'  => $dto->start_time,
             'is_active'   => $dto->is_active,
         ];
@@ -69,6 +89,10 @@ class EventService
         }
 
         $event->update($dataToUpdate);
+        
+        $event->loadCount(['eventRegistrations' => function ($query) {
+            $query->where('status', '!=', StatusRegistration::DRAFT);
+        }]);
 
         return $event;
     }
