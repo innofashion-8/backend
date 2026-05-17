@@ -91,18 +91,19 @@ class EvaluationQuestionController extends Controller
 
         $question->update([
             'question_text' => $request->type === 'header' ? '' : $request->question_text,
-            'type' => $request->type,
-            'options' => $request->type === 'multiple_choice' ? $request->options : null,
-            'is_required' => $request->is_required ?? true,
+            'type'          => $request->type,
+            'options'       => $request->type === 'multiple_choice' ? $request->options : null,
+            'is_required'   => $request->is_required ?? true,
 
-            'page_number' => $request->page_number ?? 1,
-            'sort_order' => $request->sort_order ?? 0,
+            'page_number'   => $request->page_number ?? 1,
+            // sort_order is intentionally NOT updated here;
+            // ordering is handled exclusively by the reorder endpoint (drag-and-drop).
 
-            'header_title' => $request->type === 'header' ? $request->header_title : null,
+            'header_title'       => $request->type === 'header' ? $request->header_title : null,
             'header_description' => $request->type === 'header' ? $request->header_description : null,
         ]);
 
-        return $this->success("Question updated successfully", $question);
+        return $this->success("Question updated successfully", $question->fresh());
     }
 
     public function destroy($eventId, $id)
