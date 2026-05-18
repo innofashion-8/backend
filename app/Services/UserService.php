@@ -24,9 +24,24 @@ class UserService
         $this->user = $user;
     }
 
-    public function getUsers(): LengthAwarePaginator
+    public function getUsers(int $page = 1, string $search = '', string $type = ''): LengthAwarePaginator
     {
-        return $this->user->with(['eventRegistrations.event', 'competitionRegistrations.competition'])->latest()->paginate(10)->withQueryString();
+        return $this->user
+            ->with(['eventRegistrations.event', 'competitionRegistrations.competition'])
+            ->when($search, function ($q) use ($search) {
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%")
+                        ->orWhere('institution', 'like', "%{$search}%");
+                });
+            })
+            ->when($type && $type !== 'ALL', function ($q) use ($type) {
+                $q->where('type', $type);
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
     }
 
     public function getUser(string $id): ?User

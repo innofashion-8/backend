@@ -21,9 +21,13 @@ class UserController extends Controller
         $this->userService = $userService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $user = $this->userService->getUsers();
+        $user = $this->userService->getUsers(
+            page: (int) $request->get('page', 1),
+            search: $request->get('search', ''),
+            type: $request->get('type', '')
+        );
         return $this->success("User Data fetched", $user);
     }
 
