@@ -33,8 +33,9 @@ class SaveEventRequest extends ApiRequest
             'price'       => 'required|integer|min:0',
             'quota'       => 'required|integer|min:1',
             'wa_link'     => 'required|url',
-            'start_time'  => 'required|date',
-            'is_active'   => 'sometimes|boolean',
+            'start_time'              => 'required|date',
+            'close_registration_at'   => 'nullable|date|after:start_time',
+            'is_active'               => 'sometimes|boolean',
             'bank_name'            => 'nullable|string|max:100',
             'bank_account_name'    => 'nullable|string|max:100',
             'bank_account_number'  => 'nullable|string|max:50',
@@ -72,7 +73,11 @@ class SaveEventRequest extends ApiRequest
 
             // Start Time
             'start_time.required' => 'Event start time is required.',
-            'start_time.date' => 'Event start time must be a valid date.',
+            'start_time.date'     => 'Event start time must be a valid date.',
+
+            // Close Registration
+            'close_registration_at.date'  => 'Registration close time must be a valid date.',
+            'close_registration_at.after' => 'Registration close time must be after the event start time.',
 
             // Is Active
             'is_active.boolean' => 'Active status must be true or false.',
@@ -90,6 +95,9 @@ class SaveEventRequest extends ApiRequest
             quota: $data['quota'],
             wa_link: $data['wa_link'],
             start_time: Carbon::parse($data['start_time']),
+            close_registration_at: isset($data['close_registration_at']) && $data['close_registration_at']
+                ? Carbon::parse($data['close_registration_at'])
+                : null,
             is_active: $data['is_active'] ?? true,
             bank_name: $data['bank_name'] ?? null,
             bank_account_name: $data['bank_account_name'] ?? null,

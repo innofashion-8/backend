@@ -14,6 +14,7 @@ class EventDTO
         public readonly int $quota,
         public readonly string $wa_link,
         public readonly Carbon $start_time,
+        public readonly ?Carbon $close_registration_at = null,
         public readonly bool $is_active = true,
         public readonly ?string $bank_name = null,
         public readonly ?string $bank_account_name = null,
