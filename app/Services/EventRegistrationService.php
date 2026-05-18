@@ -18,6 +18,7 @@ use App\Models\EvaluationQuestion;
 use App\Models\Event;
 use App\Models\EventRegistration;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
@@ -225,6 +226,12 @@ class EventRegistrationService
         DB::beginTransaction();
         try {
             $event = Event::where('id', $dto->eventId)->lockForUpdate()->first();
+
+            if ($event->start_time && Carbon::now()->greaterThanOrEqualTo($event->start_time)) {
+                throw ValidationException::withMessages([
+                    'status' => ['Mohon maaf, pendaftaran sudah ditutup karena event sudah dimulai.']
+                ]);
+            }
 
             $currentParticipants = $event->eventRegistrations()
                 ->whereIn('status', [StatusRegistration::PENDING, StatusRegistration::VERIFIED])
