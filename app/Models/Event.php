@@ -25,6 +25,13 @@ class Event extends Model
         'is_active',
     ];
 
+    protected $appends = ['start_time_human'];
+
+    public function getStartTimeHumanAttribute()
+    {
+        return $this->start_time ? $this->start_time->translatedFormat('d F Y, H:i') : null;
+    }
+
     protected $casts = [
         'price' => 'integer',
         'quota' => 'integer',
