@@ -56,8 +56,9 @@ class EventService
             'bank_account_name'    => $dto->bank_account_name,
             'bank_account_number'  => $dto->bank_account_number,
             'transfer_note_format' => $dto->transfer_note_format,
-            'start_time'  => $dto->start_time,
-            'is_active'   => $dto->is_active,
+            'start_time'           => $dto->start_time,
+            'close_registration_at' => $dto->close_registration_at,
+            'is_active'            => $dto->is_active,
         ]);
         
         $event->loadCount(['eventRegistrations' => function ($query) {
@@ -80,8 +81,9 @@ class EventService
             'bank_account_name'    => $dto->bank_account_name,
             'bank_account_number'  => $dto->bank_account_number,
             'transfer_note_format' => $dto->transfer_note_format,
-            'start_time'  => $dto->start_time,
-            'is_active'   => $dto->is_active,
+            'start_time'           => $dto->start_time,
+            'close_registration_at' => $dto->close_registration_at,
+            'is_active'            => $dto->is_active,
         ];
 
         if ($dto->title !== $event->title) {

@@ -231,9 +231,10 @@ class EventRegistrationService
         try {
             $event = Event::where('id', $dto->eventId)->lockForUpdate()->first();
 
-            if ($event->start_time && Carbon::now()->greaterThanOrEqualTo($event->start_time)) {
+            // Cek batas tutup registrasi: gunakan close_registration_at jika diset
+            if ($event->close_registration_at && Carbon::now()->greaterThan($event->close_registration_at)) {
                 throw ValidationException::withMessages([
-                    'status' => ['Mohon maaf, pendaftaran sudah ditutup karena event sudah dimulai.']
+                    'status' => ['Mohon maaf, pendaftaran sudah ditutup.']
                 ]);
             }
 
