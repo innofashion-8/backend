@@ -22,6 +22,7 @@ class Event extends Model
         'bank_account_number',
         'transfer_note_format',
         'start_time',
+        'close_registration_at',
         'is_active',
     ];
 
@@ -33,11 +34,12 @@ class Event extends Model
     }
 
     protected $casts = [
-        'price' => 'integer',
-        'quota' => 'integer',
-        'category' => EventCategory::class,
-        'start_time' => 'datetime',
-        'is_active' => 'boolean',
+        'price'         => 'integer',
+        'quota'         => 'integer',
+        'category'      => EventCategory::class,
+        'start_time'    => 'datetime',
+        'close_registration_at' => 'datetime',
+        'is_active'     => 'boolean',
     ];
 
     public function eventRegistrations()
