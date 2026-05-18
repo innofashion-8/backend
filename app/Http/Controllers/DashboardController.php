@@ -29,10 +29,11 @@ class DashboardController extends Controller
         $eventBreakdown = Event::withCount(['eventRegistrations' => function ($query) {
             $query->where('status', '!=', StatusRegistration::DRAFT);
         }])
+            ->where('is_active', true)
             ->get()
             ->map(function ($event) {
                 return [
-                    'label' => $event->title, 
+                    'label' => $event->title,
                     'count' => $event->event_registrations_count
                 ];
             });
@@ -40,6 +41,7 @@ class DashboardController extends Controller
         $compBreakdown = Competition::withCount(['competitionRegistrations' => function ($query) {
             $query->where('status', '!=', StatusRegistration::DRAFT);
         }])
+            ->where('is_active', true)
             ->get()
             ->map(function ($comp) {
                 return [
@@ -47,7 +49,7 @@ class DashboardController extends Controller
                     'count' => $comp->competition_registrations_count
                 ];
             });
-        
+
         $data = [
             'eventStats' => $eventStats,
             'compStats' => $compStats,
