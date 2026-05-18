@@ -81,6 +81,10 @@ class EventRegistrationService
             });
         }
 
+        if ($filter->attendedStatus) {
+            $query->where('attended_status', $filter->attendedStatus);
+        }
+
         if ($filter->search) {
             $search = $filter->search;
             $query->where(function($q) use ($search) {
