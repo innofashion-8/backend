@@ -14,6 +14,8 @@ class EventResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $quotaLeft = max(0, $this->quota - $this->event_registrations_count);
+
         return [
             'id'          => $this->id,
             'title'       => $this->title,
@@ -22,7 +24,7 @@ class EventResource extends JsonResource
             'description' => $this->description,
             'price'       => $this->price,
             'quota'       => $this->quota,
-            'quota_left'  => max(0, $this->quota - $this->event_registrations_count),
+            'quota_left'  => $quotaLeft,
             'wa_link'     => $this->wa_link,
             
             'payment_details' => $this->price > 0 ? [
@@ -43,7 +45,7 @@ class EventResource extends JsonResource
             'close_registration_at_human' => $this->close_registration_at?->translatedFormat('d F Y, H:i'),
 
             // Helper: apakah pendaftaran masih terbuka saat ini
-            'is_registration_open' => !$this->close_registration_at || now()->lessThanOrEqualTo($this->close_registration_at),
+            'is_registration_open' => (!$this->close_registration_at || now()->lessThanOrEqualTo($this->close_registration_at)) && $quotaLeft > 0,
             
             'is_active'   => $this->is_active,
         ];
