@@ -196,22 +196,98 @@ class CompetitionRegistrationController extends Controller
         $user = $request->user();
         $competition = $this->registrationService->findCompetition($key);
         
+        $fileId = $request->input('file_id');
+        
+        $artworkTempPath = storage_path("app/public/temp/{$fileId}_artwork.pdf");
+        $conceptTempPath = storage_path("app/public/temp/{$fileId}_concept.pdf");
+
+        if (!file_exists($artworkTempPath) || !file_exists($conceptTempPath)) {
+            return response()->json([
+                'code' => 422,
+                'success' => false,
+                'message' => 'The artwork or concept failed to upload completely.',
+                'errors' => ['artwork' => ['The artwork or concept failed to upload completely.']]
+            ], 422);
+        }
+
+        // Validate max size manually (5MB)
+        if (filesize($artworkTempPath) > 5120 * 1024) {
+            unlink($artworkTempPath);
+            unlink($conceptTempPath);
+            return response()->json(['code' => 422, 'success' => false, 'message' => 'Artwork file size cannot exceed 5MB.', 'errors' => ['artwork' => ['Artwork file size cannot exceed 5MB.']]], 422);
+        }
+        if (filesize($conceptTempPath) > 5120 * 1024) {
+            unlink($artworkTempPath);
+            unlink($conceptTempPath);
+            return response()->json(['code' => 422, 'success' => false, 'message' => 'Concept file size cannot exceed 5MB.', 'errors' => ['concept' => ['Concept file size cannot exceed 5MB.']]], 422);
+        }
+
         $userName = str_replace(' ', '_', $user->name);
         $competitionName = str_replace(' ', '_', $competition->name);
         $timestamp = now()->format('YmdHis');
         
-        $artworkFile = $request->file('artwork');
         $artworkFileName = "{$userName}_{$competitionName}_{$timestamp}.pdf";
-        $artworkPath = $artworkFile->storeAs('submissions/artwork', $artworkFileName, 'public');
+        $artworkPath = "submissions/artwork/{$artworkFileName}";
+        Storage::disk('public')->put($artworkPath, file_get_contents($artworkTempPath));
         
-        $conceptFile = $request->file('concept');
         $conceptFileName = "{$userName}_Concept_{$competitionName}_{$timestamp}.pdf";
-        $conceptPath = $conceptFile->storeAs('submissions/concept', $conceptFileName, 'public');
+        $conceptPath = "submissions/concept/{$conceptFileName}";
+        Storage::disk('public')->put($conceptPath, file_get_contents($conceptTempPath));
+
+        @unlink($artworkTempPath);
+        @unlink($conceptTempPath);
 
         $dto = $request->toDTO($user->id, $competition->id, $artworkPath, $conceptPath);
 
         $this->registrationService->uploadSubmission($dto);
 
         return $this->success("Karya dan Konsep berhasil dikumpulkan!");
+    }
+
+    public function uploadChunk(Request $request, $key)
+    {
+        $request->validate([
+            'file' => 'required|file',
+            'file_id' => 'required|string',
+            'file_type' => 'required|string|in:artwork,concept',
+            'chunk_index' => 'required|integer',
+            'total_chunks' => 'required|integer',
+        ]);
+
+        $fileId = $request->input('file_id');
+        $fileType = $request->input('file_type');
+        $chunkIndex = $request->input('chunk_index');
+        $totalChunks = $request->input('total_chunks');
+        $file = $request->file('file');
+
+        $chunkDir = "chunks/{$fileId}";
+        $chunkFileName = "{$fileType}_{$chunkIndex}.part";
+        
+        $file->storeAs($chunkDir, $chunkFileName, 'local');
+
+        if ($chunkIndex == $totalChunks - 1) {
+            $mergedPath = storage_path("app/public/temp/{$fileId}_{$fileType}.pdf");
+            $dir = dirname($mergedPath);
+            if (!file_exists($dir)) {
+                @mkdir($dir, 0777, true);
+            }
+
+            $out = fopen($mergedPath, 'wb');
+            for ($i = 0; $i < $totalChunks; $i++) {
+                $partPath = \Illuminate\Support\Facades\Storage::disk('local')->path("{$chunkDir}/{$fileType}_{$i}.part");
+                if (file_exists($partPath)) {
+                    $in = fopen($partPath, 'rb');
+                    while ($buff = fread($in, 4096)) {
+                        fwrite($out, $buff);
+                    }
+                    fclose($in);
+                    @unlink($partPath);
+                }
+            }
+            fclose($out);
+            @rmdir(dirname($partPath));
+        }
+
+        return $this->success("Chunk {$chunkIndex} uploaded");
     }
 }

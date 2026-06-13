@@ -40,6 +40,7 @@ Route::middleware('auth:user')->group(function () {
     Route::prefix('competitions')->group(function () {
         Route::post('/{key}/submit', [CompetitionRegistrationController::class, 'submitFinal']);
         Route::post('/{key}/submission', [CompetitionRegistrationController::class, 'uploadSubmission']);
+        Route::post('/{key}/chunk-upload', [CompetitionRegistrationController::class, 'uploadChunk']);
         Route::get('/{key}/status', [CompetitionRegistrationController::class, 'checkStatus']);
         Route::post('/{key}/draft', [CompetitionRegistrationController::class, 'saveDraft']);
     });
