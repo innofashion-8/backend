@@ -45,7 +45,7 @@ class SubmitCompetitionRequest extends ApiRequest
             'members' => ['nullable', 'array'],
             'members.*.name' => ['required', 'string', 'max:255'],
             'members.*.email' => ['required', 'email'],
-            'members.*.phone' => ['required', 'string', 'max:20', 'regex:/^(\+62|62|0)8[1-9][0-9]{6,11}$/'],
+            'members.*.phone' => ['required', 'string', 'max:20', 'regex:/^\+[1-9]\d{7,14}$/'],
             'members.*.id_card' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
         ];
     }
@@ -79,7 +79,7 @@ class SubmitCompetitionRequest extends ApiRequest
             'members.*.phone.required' => 'Member phone number is required.',
             'members.*.phone.string' => 'Member phone number must be a valid text.',
             'members.*.phone.max' => 'Member phone number cannot exceed 20 characters.',
-            'members.*.phone.regex' => 'Member phone number must be a valid Indonesian phone number (e.g., +628123456789 or 08123456789).',
+            'members.*.phone.regex' => 'Member phone number must be a valid international phone number starting with country code (e.g., +628123456789 or +123456789).',
 
             // Member ID Card
             'members.*.id_card.file' => 'Member ID card must be a valid file.',

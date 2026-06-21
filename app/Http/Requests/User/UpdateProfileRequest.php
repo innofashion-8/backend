@@ -28,7 +28,7 @@ class UpdateProfileRequest extends ApiRequest
             'phone'       => [
                 'required', 
                 'string', 
-                'regex:/^(\+62|62|0)8[1-9][0-9]{6,11}$/',
+                'regex:/^\+[1-9]\d{7,14}$/',
                 'unique:users,phone,' . $user->id 
             ],
         ];
@@ -57,7 +57,7 @@ class UpdateProfileRequest extends ApiRequest
             // Phone
             'phone.required' => 'WhatsApp number is required.',
             'phone.string' => 'WhatsApp number must be a valid text.',
-            'phone.regex' => 'WhatsApp number must be a valid Indonesian phone number (e.g., +628123456789 or 08123456789).',
+            'phone.regex' => 'WhatsApp number must be a valid international phone number starting with country code (e.g., +628123456789 or +123456789).',
             'phone.unique' => 'This WhatsApp number has already been registered by another user.',
 
             // Institution

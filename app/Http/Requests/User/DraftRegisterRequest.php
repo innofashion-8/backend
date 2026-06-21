@@ -43,7 +43,7 @@ class DraftRegisterRequest extends ApiRequest
             'draft_data.phone'       => [
                 'nullable', 
                 'string', 
-                'regex:/^(\+62|62|0)8[1-9][0-9]{6,11}$/',
+                'regex:/^\+[1-9]\d{7,14}$/',
                 'unique:users,phone,' . $this->user()->id
             ],
             'draft_data.line'     => [
@@ -90,7 +90,7 @@ class DraftRegisterRequest extends ApiRequest
 
             // Phone
             'draft_data.phone.string' => 'WhatsApp number must be a valid text.',
-            'draft_data.phone.regex' => 'WhatsApp number must be a valid Indonesian phone number (e.g., +628123456789 or 08123456789).',
+            'draft_data.phone.regex' => 'WhatsApp number must be a valid international phone number starting with country code (e.g., +628123456789 or +123456789).',
             'draft_data.phone.unique' => 'This WhatsApp number has already been registered by another user.',
 
             // Line
