@@ -196,6 +196,15 @@ class CompetitionRegistrationController extends Controller
         $user = $request->user();
         $competition = $this->registrationService->findCompetition($key);
         
+        if ($competition->submission_close_at && now()->greaterThan($competition->submission_close_at)) {
+            return response()->json([
+                'code' => 403,
+                'success' => false,
+                'message' => 'Masa pengumpulan karya telah berakhir (Close Submission).',
+                'errors' => ['status' => ['Masa pengumpulan karya telah berakhir.']]
+            ], 403);
+        }
+
         $fileId = $request->input('file_id');
         
         $artworkTempPath = storage_path("app/public/temp/{$fileId}_artwork.pdf");
@@ -246,6 +255,17 @@ class CompetitionRegistrationController extends Controller
 
     public function uploadChunk(Request $request, $key)
     {
+        $competition = $this->registrationService->findCompetition($key);
+        
+        if ($competition->submission_close_at && now()->greaterThan($competition->submission_close_at)) {
+            return response()->json([
+                'code' => 403,
+                'success' => false,
+                'message' => 'Masa pengumpulan karya telah berakhir (Close Submission).',
+                'errors' => ['status' => ['Masa pengumpulan karya telah berakhir.']]
+            ], 403);
+        }
+
         $request->validate([
             'file' => 'required|file',
             'file_id' => 'required|string',
