@@ -139,6 +139,7 @@ class UserService
         DB::beginTransaction();
         try {
             $dataToUpdate = [
+                'name'       => $dto->name,
                 'phone'      => $dto->phone,
                 'line'       => $dto->line,
                 'institution' => $dto->institution,

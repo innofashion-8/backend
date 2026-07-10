@@ -9,6 +9,7 @@ class CompleteRegisterDTO
 {
     public function __construct(
         public readonly User $user,
+        public string $name,
         public string $phone,
         public string $major,
         public ?string $line = null,

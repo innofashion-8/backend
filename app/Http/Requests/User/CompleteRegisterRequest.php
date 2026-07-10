@@ -32,6 +32,7 @@ class CompleteRegisterRequest extends ApiRequest
         $hasIdCard = !empty($user->id_card_path) || !empty($draft['id_card_path']);
 
         $rules = [
+            'name'        => 'required|string|max:255',
             'institution' => 'required|string|max:100',
             'phone'       => [
                 'required', 
@@ -114,6 +115,7 @@ class CompleteRegisterRequest extends ApiRequest
     {
         return new CompleteRegisterDTO(
             user: $this->user(),
+            name: $this->validated('name'),
             phone: $this->validated('phone'),
             line: $this->validated('line') ?? null,
             major: $this->validated('major'),
