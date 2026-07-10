@@ -1,59 +1,103 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Innofashion Backend
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Innofashion Backend is a Laravel API for managing events, competitions, participant registration, attendance, QR scanning, evaluation forms, exports, and admin permissions.
 
-## About Laravel
+## Overview
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+The backend powers the Innofashion frontend through public APIs, authenticated user APIs, and protected admin APIs. It supports Google login flows, user registration status, competition submissions, event attendance, evaluation responses, Excel exports, and role/permission management.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Key Features
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- User and admin authentication flows, including Google login support.
+- Public event and competition listing APIs.
+- Participant profile completion and registration draft/submit/status flows.
+- Competition registration, upload, chunk upload, draft, and status endpoints.
+- Event registration, attendance scan, and evaluation endpoints.
+- Admin statistics, user management, registration review, status updates, and exports.
+- Event and competition CRUD APIs.
+- Evaluation question builder and response collection.
+- QR attendance workflows, including scan and rotating QR support.
+- Division, admin, role, and permission management.
 
-## Learning Laravel
+## Tech Stack
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+- PHP 8.2
+- Laravel 12
+- Laravel Sanctum
+- Laravel Socialite
+- Spatie Laravel Permission
+- Maatwebsite Excel
+- Simple QR Code
+- MySQL/MariaDB
+- Vite and Tailwind CSS for Laravel assets
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Project Structure
 
-## Laravel Sponsors
+```text
+app/Http/Controllers/       API and admin controllers
+app/Models/                 Domain models
+database/migrations/        Database schema
+database/seeders/           Seed data
+routes/api.php              API route definitions
+routes/web.php              Web routes
+config/                     Laravel configuration
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Getting Started
 
-### Premium Partners
+```bash
+composer install
+npm install
+copy .env.example .env
+php artisan key:generate
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Configure database and frontend URL values:
 
-## Contributing
+```env
+APP_URL=http://localhost:8000
+FRONTEND_URL=http://localhost:3000
+DB_DATABASE=innof_backend
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Run migrations and seeders:
 
-## Code of Conduct
+```bash
+php artisan migrate --seed
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Start the backend:
 
-## Security Vulnerabilities
+```bash
+php artisan serve
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+For local development with queue and frontend asset watcher, use the project's Composer development script if configured:
 
-## License
+```bash
+composer run dev
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## API Areas
+
+- `auth`: login, logout, profile, Google auth
+- `events`: public data, registration, attendance, evaluation
+- `competitions`: public data, registration, upload, status
+- `admin`: stats, users, events, competitions, registrations, exports, roles, permissions
+
+## Security Notes
+
+- Admin endpoints must remain protected by authentication and authorization middleware.
+- Upload endpoints should enforce file type, size, ownership, and storage visibility rules.
+- QR attendance codes should be time-bound or rotated to reduce replay risk.
+- Export endpoints may contain personal data and should be permission-gated.
+
+## Suggested Tests
+
+- Feature tests for auth, registration submission, admin review, QR scan, and exports.
+- Authorization tests for admin-only routes.
+- File upload tests for invalid size/type and unauthorized access.
+
+## Status
+
+Backend API for a full-stack event and competition management platform.
