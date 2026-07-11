@@ -107,6 +107,16 @@ class CompetitionRegistrationController extends Controller
     public function saveDraft(SaveCompetitionDraftRequest $request, $key)
     {
         $competition = $this->registrationService->findCompetition($key);
+
+        if ($competition->registration_close_at && now()->greaterThan($competition->registration_close_at)) {
+            return response()->json([
+                'code' => 403,
+                'success' => false,
+                'message' => 'Masa pendaftaran kompetisi telah berakhir.',
+                'errors' => ['status' => ['Masa pendaftaran kompetisi telah berakhir.']]
+            ], 403);
+        }
+
         $payload = $request->validated()['draft_data'] ?? [];
        
         $existingDraft = $this->registrationService->getDraft($request->user()->id, $competition->id);
@@ -154,6 +164,15 @@ class CompetitionRegistrationController extends Controller
     public function submitFinal(SubmitCompetitionRequest $request, $key)
     {
         $competition = $this->registrationService->findCompetition($key);
+
+        if ($competition->registration_close_at && now()->greaterThan($competition->registration_close_at)) {
+            return response()->json([
+                'code' => 403,
+                'success' => false,
+                'message' => 'Masa pendaftaran kompetisi telah berakhir.',
+                'errors' => ['status' => ['Masa pendaftaran kompetisi telah berakhir.']]
+            ], 403);
+        }
 
         $memberFiles = [];
         $membersData = $request->input('members', []);
