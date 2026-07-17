@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enum\EventCategory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Event extends Model
 {
@@ -50,5 +51,10 @@ class Event extends Model
     public function evaluationQuestions()
     {
         return $this->hasMany(EvaluationQuestion::class, 'event_id', 'id');
+    }
+
+    public function rsvpSessions(): MorphMany
+    {
+        return $this->morphMany(RsvpSession::class, 'rsvpsable');
     }
 }
