@@ -11,6 +11,7 @@ use App\Http\Controllers\EventController;
 use App\Http\Controllers\EventRegistrationController;
 use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ScannerController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
@@ -50,10 +51,11 @@ Route::middleware('auth:user')->group(function () {
         Route::post('/{key}/submit', [EventRegistrationController::class, 'submitFinal']);
         Route::get('/{key}/status', [EventRegistrationController::class, 'checkStatus']);
         Route::post('/{key}/draft', [EventRegistrationController::class, 'saveDraft']);
-        Route::post('/scan-attendance', [EventRegistrationController::class, 'userScanCheckIn']);
         Route::get('/{key}/evaluation-questions', [EventRegistrationController::class, 'getEvaluationQuestions']);
         Route::post('/{key}/evaluation', [EventRegistrationController::class, 'submitEvaluation']);
     });
+
+    Route::post('/scanner/user-check-in', [ScannerController::class, 'userScanCheckIn']);
 });
 
 Route::middleware('auth:admin')->group(function () {
@@ -99,7 +101,7 @@ Route::middleware('auth:admin')->group(function () {
         });
 
         Route::middleware(['permission:scan_attendance'])->prefix('scan')->group(function () {
-            Route::post('/attendance', [EventRegistrationController::class, 'checkIn']);
+            Route::post('/attendance', [ScannerController::class, 'adminCheckIn']);
         });
         Route::get('/events/{key}/rotating-qr', [EventController::class, 'getRotatingQr']);
 
