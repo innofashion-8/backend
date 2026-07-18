@@ -14,6 +14,8 @@ class RsvpSession extends Model
 
     protected $fillable = [
         'title',
+        'slug',
+        'description',
         'max_tickets_per_user',
         'total_quota',
         'is_active',

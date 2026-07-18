@@ -15,6 +15,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('title');
             $table->string('slug')->unique();
+            $table->text('description')->nullable();
             $table->integer('max_tickets_per_user')->default(1);
             $table->integer('total_quota');
             $table->boolean('is_active')->default(true);
