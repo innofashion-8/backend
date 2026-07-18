@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enum\CompetitionCategory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Competition extends Model
 {
@@ -41,5 +42,10 @@ class Competition extends Model
     public function competitionRegistrations()
     {
         return $this->hasMany(CompetitionRegistration::class, 'competition_id', 'id');
+    }
+
+    public function rsvpSessions(): MorphMany
+    {
+        return $this->morphMany(RsvpSession::class, 'rsvpsable');
     }
 }
