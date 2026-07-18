@@ -143,27 +143,6 @@ class EventRegistrationController extends Controller
         return $this->success("Kehadiran berhasil diupdate", $registration);
     }
 
-    public function checkIn(CheckInRequest $request)
-    {
-        $registrationId = $request->validated('registration_id');
-
-        $data = $this->registrationService->processCheckIn($registrationId);
-
-        $message = "ACCESS GRANTED. Selamat datang, {$data['user_name']} di {$data['type']} {$data['item_name']}.";
-
-        return $this->success($message, $data);
-    }
-
-    public function userScanCheckIn(Request $request)
-    {
-        $request->validate([
-            'token' => 'required|string'
-        ]);
-
-        $result = $this->registrationService->processUserScanCheckIn($request->user(), $request->token);
-
-        return $this->success("ACCESS GRANTED. Kehadiran Anda telah dicatat.", $result);
-    }
 
     public function getEvaluationQuestions(Request $request, $key)
     {

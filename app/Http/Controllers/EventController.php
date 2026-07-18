@@ -77,6 +77,7 @@ class EventController extends Controller
         $validity = (int) $request->query('validity', 30); // default 30s
         $event = $this->eventService->getEventByKey($key);
         $payload = json_encode([
+            'type'     => 'event',
             'event_id' => $event->id,
             'exp'      => now()->addSeconds($validity + 5)->timestamp,
         ]);
