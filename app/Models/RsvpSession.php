@@ -14,13 +14,14 @@ class RsvpSession extends Model
 
     protected $fillable = [
         'title',
-        'rsvpsable_id',
-        'rsvpsable_type',
         'max_tickets_per_user',
         'total_quota',
         'is_active',
         'rsvp_open_at',
         'rsvp_close_at',
+        'start_time',
+        'end_time',
+        'venue',
     ];
 
     protected $casts = [
@@ -29,15 +30,9 @@ class RsvpSession extends Model
         'rsvp_close_at' => 'datetime',
         'max_tickets_per_user' => 'integer',
         'total_quota' => 'integer',
+        'start_time' => 'datetime',
+        'end_time' => 'datetime',
     ];
-
-    /**
-     * Polymorphic relation to Competition or Event
-     */
-    public function rsvpsable(): MorphTo
-    {
-        return $this->morphTo();
-    }
 
     public function userRsvps(): HasMany
     {

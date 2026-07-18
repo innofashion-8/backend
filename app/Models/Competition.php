@@ -43,9 +43,4 @@ class Competition extends Model
     {
         return $this->hasMany(CompetitionRegistration::class, 'competition_id', 'id');
     }
-
-    public function rsvpSessions(): MorphMany
-    {
-        return $this->morphMany(RsvpSession::class, 'rsvpsable');
-    }
 }

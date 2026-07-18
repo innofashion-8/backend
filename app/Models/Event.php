@@ -52,9 +52,4 @@ class Event extends Model
     {
         return $this->hasMany(EvaluationQuestion::class, 'event_id', 'id');
     }
-
-    public function rsvpSessions(): MorphMany
-    {
-        return $this->morphMany(RsvpSession::class, 'rsvpsable');
-    }
 }

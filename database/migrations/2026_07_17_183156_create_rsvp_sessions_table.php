@@ -14,12 +14,15 @@ return new class extends Migration
         Schema::create('rsvp_sessions', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('title');
-            $table->uuidMorphs('rsvpsable'); // Ini akan membuat kolom 'rsvpsable_type' dan 'rsvpsable_id'
+            $table->string('slug')->unique();
             $table->integer('max_tickets_per_user')->default(1);
             $table->integer('total_quota');
             $table->boolean('is_active')->default(true);
             $table->timestamp('rsvp_open_at')->nullable();
             $table->timestamp('rsvp_close_at')->nullable();
+            $table->timestamp('start_time')->nullable();
+            $table->timestamp('end_time')->nullable();
+            $table->string('venue')->nullable();
             $table->timestamps();
         });
     }
