@@ -36,6 +36,7 @@ Route::middleware('auth:user')->group(function () {
     Route::get('/complete-registration/status', [UserController::class, 'checkStatus']);
     Route::post('/complete-registration/draft', [UserController::class, 'saveDraft']);
     Route::post('/complete-registration/submit', [UserController::class, 'submitRegister']);
+    Route::post('/complete-registration/guest', [UserController::class, 'submitGuestRegister']);
     Route::get('/registrations', [UserController::class, 'getRegistrations']);
     Route::prefix('competitions')->group(function () {
         Route::post('/{key}/submit', [CompetitionRegistrationController::class, 'submitFinal']);

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Data\CompleteGuestDTO;
 use App\Data\CompleteRegisterDTO;
 use App\Data\ProfileDraftDTO;
 use App\Data\UpdateProfileDTO;
@@ -170,6 +171,43 @@ class UserService
             }
             Log::error("Error Complete Profile: " . $e->getMessage());
             
+            throw $e;
+        }
+    }
+
+    
+    public function completeGuestRegister(CompleteGuestDTO $dto): User
+    {
+        $user = $dto->user;
+
+        if ($user->is_profile_complete) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'user' => ['Profile sudah complete.']
+            ]);
+        }
+
+        DB::beginTransaction();
+        try {
+            $updateData = [
+                'type'                => UserType::GUEST->value,
+                'phone'               => $dto->phone,
+                'institution'         => $dto->institution,
+                'is_profile_complete' => true,
+                'draft_data'          => null,
+            ];
+            
+            if ($dto->name) {
+                $updateData['name'] = $dto->name;
+            }
+
+            $user->update($updateData);
+
+            DB::commit();
+            return $user;
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Gagal complete guest register: ' . $e->getMessage());
             throw $e;
         }
     }

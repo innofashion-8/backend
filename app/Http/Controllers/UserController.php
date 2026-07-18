@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Data\ProfileDraftDTO;
+use App\Http\Requests\User\CompleteGuestRequest;
 use App\Http\Requests\User\CompleteRegisterRequest;
 use App\Http\Requests\User\DraftRegisterRequest;
 use App\Http\Requests\User\UpdateProfileRequest;
@@ -93,6 +94,12 @@ class UserController extends Controller
     {
         $user = $this->userService->completeRegister($request->toDTO());
         return $this->success("Profile berhasil diupdate", $user);
+    }
+
+    public function submitGuestRegister(CompleteGuestRequest $request)
+    {
+        $user = $this->userService->completeGuestRegister($request->toDTO());
+        return $this->success("Profile tamu berhasil disimpan", $user);
     }
 
     public function checkStatus(Request $request)
