@@ -7,6 +7,6 @@ enum EventCategory :string
     case TALKSHOW = 'TALKSHOW';
     case SEMINAR = 'SEMINAR';
     case WORKSHOP = 'WORKSHOP';
-    case GRADUATION = 'GRADUATION';
     case RESTYLING = 'RESTYLING';
+    case FASHION_SHOW = 'FASHION_SHOW';
 }
