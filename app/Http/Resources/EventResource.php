@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Enum\EventCategory;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -14,7 +15,9 @@ class EventResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $quotaLeft = max(0, $this->quota - $this->event_registrations_count);
+        $isMultiTicket = $this->category === EventCategory::FASHION_SHOW || ($this->max_tickets_per_user ?? 1) > 1;
+        $ticketsCount = $isMultiTicket ? ($this->event_tickets_count ?? 0) : ($this->event_registrations_count ?? 0);
+        $quotaLeft = max(0, $this->quota - $ticketsCount);
 
         return [
             'id'          => $this->id,
@@ -25,6 +28,8 @@ class EventResource extends JsonResource
             'price'       => $this->price,
             'quota'       => $this->quota,
             'quota_left'  => $quotaLeft,
+            'max_tickets_per_user' => $this->max_tickets_per_user,
+            'venue'       => $this->venue,
             'wa_link'     => $this->wa_link,
             
             'payment_details' => $this->price > 0 ? [
