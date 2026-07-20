@@ -8,9 +8,6 @@ class SubmitEventDTO
         public string $userId,
         public string $eventId,
         public readonly ?string $paymentProof,
-        
-        // public readonly ?string $nrp,
-        // public readonly ?int $batch,
-        // public readonly ?string $major,
+        public readonly ?array $guestNames = null,
     ) {}
 }

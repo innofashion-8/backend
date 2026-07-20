@@ -28,6 +28,8 @@ class SubmitEventRequest extends FormRequest
 
         return [
             'payment_proof' => ['nullable', 'file', 'mimes:jpg,jpeg,png', 'max:2048'],
+            'guest_names'   => ['nullable', 'array'],
+            'guest_names.*' => ['string', 'max:255'],
 
             // 'nrp'           => ['nullable', 'string', 'max:20', 
             //                     Rule::unique('users', 'nrp')->ignore($user->id)],
@@ -59,6 +61,7 @@ class SubmitEventRequest extends FormRequest
             eventId: $eventId,
             
             paymentProof: $uploadedPaymentPath, 
+            guestNames: $data['guest_names'] ?? null,
             
             // nrp: $data['nrp'] ?? null,
             // batch: $data['batch'] ?? null,
