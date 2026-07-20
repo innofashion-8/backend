@@ -10,6 +10,7 @@ use App\Enum\UserType;
 use App\Models\CompetitionRegistration;
 use App\Models\EventRegistration;
 use App\Models\User;
+use App\Services\Attendance\AttendanceManagerFactory;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -218,9 +219,14 @@ class UserService
             ->where('user_id', $userId)
             ->get();
 
-        $events = EventRegistration::with('event')
+        $events = EventRegistration::with(['event', 'tickets'])
             ->where('user_id', $userId)
             ->get();
+            
+        $events = $events->map(function ($reg) {
+            $reg->ticket_list = AttendanceManagerFactory::makeForEvent($reg->event)->getTickets($reg);
+            return $reg;
+        });
         
         return [
             'competitions' => $competitions,
