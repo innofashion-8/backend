@@ -179,7 +179,7 @@ class EventRegistrationController extends Controller
     public function submitEvaluation(Request $request, $key)
     {
         $request->validate([
-            'answers' => 'required|array',
+            'answers' => 'present|array',
             'answers.*.question_id' => 'required|exists:evaluation_questions,id',
             'answers.*.value' => 'nullable',
         ]);
