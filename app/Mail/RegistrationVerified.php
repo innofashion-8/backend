@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Services\Attendance\AttendanceManagerFactory;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
@@ -35,29 +36,34 @@ class RegistrationVerified extends Mailable
 
     public function build()
     {
-        $qrCodeData = null;
-
-        if ($this->type === 'EVENT' && $this->qrCodeUrl) {
-            try {
-                $response = Http::get($this->qrCodeUrl);
-                
-                if ($response->successful()) {
-                    $qrCodeData = $response->body();
-                }
-            } catch (\Exception $e) {
-                Log::error("Gagal download QR Code dari QuickChart: " . $e->getMessage());
-            }
-        }
-
         $email = $this->subject("[ INNOFASHION 8 ] - PROTOCOL VERIFIED")
                       ->view('mails.registration.verified', [
-                          'qrCodeData' => $qrCodeData 
+                          // We pass the single QR data for backward compatibility in the view if needed
+                          'qrCodeData' => null 
                       ]);
 
-        if ($this->type === 'EVENT' && $qrCodeData) {
-            $email->attachData($qrCodeData, 'Access_Pass_Innofashion.png', [
-                'mime' => 'image/png',
-            ]);
+        if ($this->type === 'EVENT') {
+            $manager = AttendanceManagerFactory::makeForEvent($this->registration->event);
+            $tickets = $manager->getTickets($this->registration);
+
+            $count = 1;
+            foreach ($tickets as $ticket) {
+                $url = "https://quickchart.io/qr?text=" . urlencode($ticket->ticketCode) . "&size=300&margin=2";
+                try {
+                    $response = Http::get($url);
+                    
+                    if ($response->successful()) {
+                        $qrCodeData = $response->body();
+                        $filename = $count++ . "Access_Pass_" . str_replace(' ', '_', $ticket->guestName) . ".png";
+                        
+                        $email->attachData($qrCodeData, $filename, [
+                            'mime' => 'image/png',
+                        ]);
+                    }
+                } catch (\Exception $e) {
+                    Log::error("Gagal download QR Code untuk tiket {$ticket->ticketCode}: " . $e->getMessage());
+                }
+            }
         }
 
         return $email;
