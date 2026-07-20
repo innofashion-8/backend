@@ -54,7 +54,7 @@ class RegistrationVerified extends Mailable
                     
                     if ($response->successful()) {
                         $qrCodeData = $response->body();
-                        $filename = $count++ . "Access_Pass_" . str_replace(' ', '_', $ticket->guestName) . ".png";
+                        $filename = $count++ . "_Access_Pass_" . str_replace(' ', '_', $ticket->guestName) . ".png";
                         
                         $email->attachData($qrCodeData, $filename, [
                             'mime' => 'image/png',
