@@ -17,6 +17,8 @@ class Event extends Model
         'description',
         'price',
         'quota',
+        'max_tickets_per_user',
+        'venue',
         'wa_link',
         'bank_name',
         'bank_account_name',
@@ -46,6 +48,11 @@ class Event extends Model
     public function eventRegistrations()
     {
         return $this->hasMany(EventRegistration::class, 'event_id', 'id');
+    }
+
+    public function eventTickets()
+    {
+        return $this->hasManyThrough(EventTicket::class, EventRegistration::class, 'event_id', 'event_registration_id', 'id', 'id');
     }
 
     public function evaluationQuestions()

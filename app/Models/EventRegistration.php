@@ -6,6 +6,8 @@ use App\Enum\AttendedStatus;
 use App\Enum\StatusRegistration;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class EventRegistration extends Model
 {
@@ -38,9 +40,14 @@ class EventRegistration extends Model
         return $this->belongsTo(User::class, 'user_id', 'id');
     }
 
-    public function event()
+    public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class, 'event_id', 'id');
+    }
+
+    public function tickets(): HasMany
+    {
+        return $this->hasMany(EventTicket::class, 'event_registration_id');
     }
 
     public function verifiedBy()

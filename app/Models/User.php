@@ -65,9 +65,4 @@ class User extends Authenticatable
     {
         return $this->hasMany(CompetitionMember::class, 'user_id', 'id');
     }
-
-    public function rsvps(): HasMany
-    {
-        return $this->hasMany(UserRsvp::class);
-    }
 }
