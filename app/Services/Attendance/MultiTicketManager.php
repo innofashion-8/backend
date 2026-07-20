@@ -11,6 +11,7 @@ use App\DTOs\TicketDTO;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Exception;
+use Illuminate\Support\Facades\DB;
 
 class MultiTicketManager implements AttendanceManagerInterface
 {
@@ -62,16 +63,35 @@ class MultiTicketManager implements AttendanceManagerInterface
 
     public function checkIn(string $ticketCode): array
     {
-        $ticket = EventTicket::where('ticket_code', $ticketCode)->firstOrFail();
+        $ticket = EventTicket::with('registration.event')->where('ticket_code', $ticketCode)->firstOrFail();
         
         if ($ticket->attended_status === AttendedStatus::CHECKED_IN) {
             throw new Exception("Ticket already checked in.");
         }
 
-        $ticket->update([
-            'attended_status' => AttendedStatus::CHECKED_IN->value,
-            'check_in_at' => now()
-        ]);
+        DB::beginTransaction();
+        try {
+            $ticket->update([
+                'attended_status' => AttendedStatus::CHECKED_IN->value,
+                'check_in_at' => now()
+            ]);
+
+            $pendingTicketsLeft = EventTicket::where('event_registration_id', $ticket->event_registration_id)
+                ->where('attended_status', AttendedStatus::PENDING->value)
+                ->count();
+
+            if ($pendingTicketsLeft === 0) {
+                $ticket->registration->update([
+                    'attended_status' => AttendedStatus::CHECKED_IN->value,
+                    'check_in_at' => now()
+                ]);
+            }
+
+            DB::commit();
+        } catch (Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
 
         return [
             'type' => 'TICKET',
