@@ -32,9 +32,11 @@ class SaveEventRequest extends ApiRequest
             'description' => 'nullable|string',
             'price'       => 'required|integer|min:0',
             'quota'       => 'required|integer|min:1',
-            'wa_link'     => 'required|url',
+            'max_tickets_per_user' => 'nullable|integer|min:1',
+            'venue'       => 'nullable|string|max:255',
+            'wa_link'     => 'nullable|url',
             'start_time'              => 'required|date',
-            'close_registration_at'   => 'nullable|date|after:start_time',
+            'close_registration_at'   => 'nullable|date',
             'is_active'               => 'sometimes|boolean',
             'bank_name'            => 'nullable|string|max:100',
             'bank_account_name'    => 'nullable|string|max:100',
@@ -77,7 +79,6 @@ class SaveEventRequest extends ApiRequest
 
             // Close Registration
             'close_registration_at.date'  => 'Registration close time must be a valid date.',
-            'close_registration_at.after' => 'Registration close time must be after the event start time.',
 
             // Is Active
             'is_active.boolean' => 'Active status must be true or false.',
@@ -93,7 +94,9 @@ class SaveEventRequest extends ApiRequest
             description: $data['description'],
             price: $data['price'],
             quota: $data['quota'],
-            wa_link: $data['wa_link'],
+            max_tickets_per_user: $data['max_tickets_per_user'] ?? 1,
+            venue: $data['venue'] ?? null,
+            wa_link: $data['wa_link'] ?? null,
             start_time: Carbon::parse($data['start_time']),
             close_registration_at: isset($data['close_registration_at']) && $data['close_registration_at']
                 ? Carbon::parse($data['close_registration_at'])
