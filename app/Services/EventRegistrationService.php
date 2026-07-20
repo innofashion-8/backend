@@ -17,7 +17,10 @@ use App\Models\EvaluationAnswer;
 use App\Models\EvaluationQuestion;
 use App\Models\Event;
 use App\Models\EventRegistration;
+use App\Models\EventTicket;
 use App\Models\User;
+use App\Services\Attendance\AttendanceManagerFactory;
+use App\Services\Eligibility\EligibilityFactory;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Crypt;
@@ -55,7 +58,7 @@ class EventRegistrationService
     public function getAll(EventFilterDTO $filter)
     {
         $query = $this->registration->query()
-            ->with(['user', 'event'])
+            ->with(['user', 'event', 'tickets'])
             ->where('status', '!=', StatusRegistration::DRAFT)
             ->latest();
 
@@ -114,6 +117,15 @@ class EventRegistrationService
             ]);
         }
 
+        $user = User::find($dto->userId);
+        $event = $this->findEvent($dto->activityId);
+        $eligibilityChecker = EligibilityFactory::make($event);
+        if (!$eligibilityChecker->isEligible($event, $user)) {
+            throw ValidationException::withMessages([
+                'status' => [$eligibilityChecker->getErrorMessage()]
+            ]);
+        }
+
         $statusToSave = ($registration && $registration->status === StatusRegistration::REJECTED) 
                         ? StatusRegistration::REJECTED 
                         : StatusRegistration::DRAFT;
@@ -147,6 +159,15 @@ class EventRegistrationService
         if ($registration && !in_array($registration->status, [StatusRegistration::DRAFT, StatusRegistration::REJECTED])) {
             throw ValidationException::withMessages([
                 'status' => ['Anda sudah terdaftar di event ini. Pendaftaran sedang diproses atau sudah diverifikasi.']
+            ]);
+        }
+
+        $user = User::find($dto->userId);
+        $event = $this->findEvent($dto->eventId);
+        $eligibilityChecker = EligibilityFactory::make($event);
+        if (!$eligibilityChecker->isEligible($event, $user)) {
+            throw ValidationException::withMessages([
+                'status' => [$eligibilityChecker->getErrorMessage()]
             ]);
         }
 
@@ -238,16 +259,6 @@ class EventRegistrationService
                 ]);
             }
 
-            $currentParticipants = $event->eventRegistrations()
-                ->whereIn('status', [StatusRegistration::PENDING, StatusRegistration::VERIFIED])
-                ->count();
-
-            if ($currentParticipants >= $event->quota) {
-                throw ValidationException::withMessages([
-                    'quota' => ['Mohon maaf, kuota pendaftaran untuk event ini sudah penuh.']
-                ]);
-            }
-
             $dataToSave = [
                 'status'        => StatusRegistration::PENDING,
                 'payment_proof' => $finalPayment,
@@ -262,6 +273,13 @@ class EventRegistrationService
                 $registration = $this->registration->create($dataToSave);
             }
 
+            $user = User::find($dto->userId);
+            
+            $attendanceManager = AttendanceManagerFactory::makeForEvent($event);
+            $guestNames = $dto->guestNames ?? [$user->name];
+            
+            $attendanceManager->validateQuota($event, count($guestNames));
+            $attendanceManager->generateTickets($registration, $guestNames);
 
             DB::commit();
 
@@ -351,6 +369,49 @@ class EventRegistrationService
             DB::commit();
 
             return $registration;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+    public function updateTicketAttendance(string $ticketId, string $attended)
+    {
+        $ticket = EventTicket::with('registration')->find($ticketId);
+
+        if (!$ticket) {
+            throw ValidationException::withMessages([
+                'id' => ['Tiket tidak ditemukan.']
+            ]);
+        }
+
+        if ($ticket->registration->status !== StatusRegistration::VERIFIED) {
+            throw ValidationException::withMessages([
+                'status' => ['Hanya tiket dari pendaftaran dengan status VERIFIED yang dapat diupdate kehadirannya.']
+            ]);
+        }
+
+        DB::beginTransaction();
+        try {
+            $status = AttendedStatus::from($attended);
+            $checkInAt = $ticket->check_in_at;
+            $checkOutAt = $ticket->check_out_at;
+
+            if ($status === AttendedStatus::CHECKED_IN && !$checkInAt) {
+                $checkInAt = now();
+            }
+            if ($status === AttendedStatus::CHECKED_OUT && !$checkOutAt) {
+                $checkOutAt = now();
+            }
+
+            $ticket->update([
+                'attended_status' => $status,
+                'check_in_at'     => $checkInAt,
+                'check_out_at'    => $checkOutAt,
+            ]);
+            DB::commit();
+
+            return $ticket;
         } catch (\Exception $e) {
             DB::rollBack();
             throw $e;

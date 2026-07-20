@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\EventRegistrationsExport;
+use App\Services\Eligibility\EligibilityFactory;
 
 class EventRegistrationController extends Controller
 {
@@ -54,6 +55,17 @@ class EventRegistrationController extends Controller
         ];
 
         if (!$registration) {
+            $eligibilityChecker = EligibilityFactory::make($event);
+            if (!$eligibilityChecker->isEligible($event, $user)) {
+                return $this->success("Belum terdaftar", [
+                    'status'       => 'UNREGISTERED',
+                    'is_locked'    => true,
+                    'draft_data'   => null,
+                    'user_profile' => $userProfile,
+                    'eligibility_error' => $eligibilityChecker->getErrorMessage()
+                ]);
+            }
+
             return $this->success("Belum terdaftar", [
                 'status'       => 'UNREGISTERED',
                 'is_locked'    => false,
@@ -141,6 +153,15 @@ class EventRegistrationController extends Controller
         $registration = $this->registrationService->updateAttendance($id, $attended);
 
         return $this->success("Kehadiran berhasil diupdate", $registration);
+    }
+
+    public function updateTicketAttendance(UpdateAttendanceRequest $request, $id)
+    {
+        $attended = $request->validated('attended');
+
+        $ticket = $this->registrationService->updateTicketAttendance($id, $attended);
+
+        return $this->success("Kehadiran tiket berhasil diupdate", $ticket);
     }
 
 
