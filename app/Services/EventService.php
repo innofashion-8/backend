@@ -18,8 +18,13 @@ class EventService
     public function getEventByKey(string $key)
     {
         $query = $this->event->where('is_active', true)
+                            ->withCount(['eventTickets' => function ($query) {
+                                $query->where('event_registrations.status', '!=', StatusRegistration::DRAFT)
+                                      ->where('event_registrations.status', '!=', StatusRegistration::REJECTED);
+                            }])
                             ->withCount(['eventRegistrations' => function ($query) {
-                                $query->where('status', '!=', StatusRegistration::DRAFT);
+                                $query->where('status', '!=', StatusRegistration::DRAFT)
+                                      ->where('status', '!=', StatusRegistration::REJECTED);
                             }]);
 
         if (Str::isUuid($key)) {
@@ -34,10 +39,15 @@ class EventService
     public function getEvents()
     {
         $events = $this->event->where('is_active', true)
-                    ->withCount(['eventRegistrations' => function ($query) {
-                        $query->where('status', '!=', StatusRegistration::DRAFT);
+                    ->withCount(['eventTickets' => function ($query) {
+                        $query->where('event_registrations.status', '!=', StatusRegistration::DRAFT)
+                              ->where('event_registrations.status', '!=', StatusRegistration::REJECTED);
                     }])
-                    ->orderBy('start_time', 'asc')
+                    ->withCount(['eventRegistrations' => function ($query) {
+                        $query->where('status', '!=', StatusRegistration::DRAFT)
+                              ->where('status', '!=', StatusRegistration::REJECTED);
+                    }])
+                    ->latest()
                     ->get();
         return EventResource::collection($events);
     }
@@ -51,6 +61,8 @@ class EventService
             'description' => $dto->description,
             'price'       => $dto->price,
             'quota'       => $dto->quota,
+            'max_tickets_per_user' => $dto->max_tickets_per_user,
+            'venue'       => $dto->venue,
             'wa_link'     => $dto->wa_link,
             'bank_name'            => $dto->bank_name,
             'bank_account_name'    => $dto->bank_account_name,
@@ -61,8 +73,13 @@ class EventService
             'is_active'            => $dto->is_active,
         ]);
         
+        $event->loadCount(['eventTickets' => function ($query) {
+            $query->where('event_registrations.status', '!=', StatusRegistration::DRAFT)
+                  ->where('event_registrations.status', '!=', StatusRegistration::REJECTED);
+        }]);
         $event->loadCount(['eventRegistrations' => function ($query) {
-            $query->where('status', '!=', StatusRegistration::DRAFT);
+            $query->where('status', '!=', StatusRegistration::DRAFT)
+                  ->where('status', '!=', StatusRegistration::REJECTED);
         }]);
         
         return $event;
@@ -76,6 +93,8 @@ class EventService
             'description' => $dto->description,
             'price'       => $dto->price,
             'quota'       => $dto->quota,
+            'max_tickets_per_user' => $dto->max_tickets_per_user,
+            'venue'       => $dto->venue,
             'wa_link'     => $dto->wa_link,
             'bank_name'            => $dto->bank_name,
             'bank_account_name'    => $dto->bank_account_name,
@@ -92,8 +111,13 @@ class EventService
 
         $event->update($dataToUpdate);
         
+        $event->loadCount(['eventTickets' => function ($query) {
+            $query->where('event_registrations.status', '!=', StatusRegistration::DRAFT)
+                  ->where('event_registrations.status', '!=', StatusRegistration::REJECTED);
+        }]);
         $event->loadCount(['eventRegistrations' => function ($query) {
-            $query->where('status', '!=', StatusRegistration::DRAFT);
+            $query->where('status', '!=', StatusRegistration::DRAFT)
+                  ->where('status', '!=', StatusRegistration::REJECTED);
         }]);
 
         return $event;
