@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\Attendance\AttendanceManagerFactory;
 use App\Services\Scanner\ScannerFactory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
@@ -18,37 +19,28 @@ class ScannerController extends Controller
         $request->validate([
             'token' => 'nullable|string',
             'id' => 'nullable|string',
-            'type' => 'nullable|string|in:event,ticket'
         ]);
 
+        $code = null;
         if ($request->filled('token')) {
             try {
                 $payload = json_decode(Crypt::decryptString($request->token));
-                $id = $payload->id ?? null;
-                $type = $payload->type ?? null;
+                $code = $payload->id ?? null;
             } catch (\Exception $e) {
-                throw ValidationException::withMessages([
-                    'token' => ['INVALID PROTOCOL: QR Code tidak valid atau rusak.']
-                ]);
-            }
-            if (!$id || !$type) {
-                throw ValidationException::withMessages([
-                    'token' => ['INVALID PROTOCOL: Format QR Code tidak lengkap.']
-                ]);
+                $code = $request->token;
             }
         } else {
-            $id = $request->id;
-            $type = $request->type;
+            $code = $request->id;
         }
 
-        if (!$id || !$type) {
+        if (!$code) {
             throw ValidationException::withMessages([
-                'id' => ['ID dan Type wajib diisi jika tidak menggunakan token.']
+                'id' => ['ID atau Token wajib diisi.']
             ]);
         }
 
-        $processor = ScannerFactory::make($type);
-        $data = $processor->processAdminScan($id);
+        $manager = AttendanceManagerFactory::makeFromTicketCode($code);
+        $data = $manager->checkIn($code);
 
         $message = "ACCESS GRANTED. Selamat datang, {$data['user_name']} di {$data['type']} {$data['item_name']}.";
 
