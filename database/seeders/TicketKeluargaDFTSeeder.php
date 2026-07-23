@@ -200,18 +200,18 @@ class TicketKeluargaDFTSeeder extends Seeder
                     'guest_count' => 5,
                 ]
             ],
-            [
-                'user' => [
-                    'name'        => 'Melody Putri Jessya',
-                    'email'       => 'unknown.melody@john.petra.ac.id',
-                    'type'        => UserType::INTERNAL,
-                    'institution' => 'Petra Christian University',
-                    'phone'       => '081234567905',
-                ],
-                'tickets' => [
-                    'guest_count' => 0,
-                ]
-            ],
+            // [
+            //     'user' => [
+            //         'name'        => 'Melody Putri Jessya',
+            //         'email'       => 'unknown.melody@john.petra.ac.id',
+            //         'type'        => UserType::INTERNAL,
+            //         'institution' => 'Petra Christian University',
+            //         'phone'       => '081234567905',
+            //     ],
+            //     'tickets' => [
+            //         'guest_count' => 0,
+            //     ]
+            // ],
             [
                 'user' => [
                     'name'        => 'Moza Thea',
@@ -224,18 +224,18 @@ class TicketKeluargaDFTSeeder extends Seeder
                     'guest_count' => 5,
                 ]
             ],
-            [
-                'user' => [
-                    'name'        => 'Nadia Florence',
-                    'email'       => 'unknown.nadia@john.petra.ac.id',
-                    'type'        => UserType::INTERNAL,
-                    'institution' => 'Petra Christian University',
-                    'phone'       => '081234567907',
-                ],
-                'tickets' => [
-                    'guest_count' => 0,
-                ]
-            ],
+            // [
+            //     'user' => [
+            //         'name'        => 'Nadia Florence',
+            //         'email'       => 'unknown.nadia@john.petra.ac.id',
+            //         'type'        => UserType::INTERNAL,
+            //         'institution' => 'Petra Christian University',
+            //         'phone'       => '081234567907',
+            //     ],
+            //     'tickets' => [
+            //         'guest_count' => 0,
+            //     ]
+            // ],
             [
                 'user' => [
                     'name'        => 'Naomi Hannah',
