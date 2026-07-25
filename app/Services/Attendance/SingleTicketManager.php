@@ -22,7 +22,7 @@ class SingleTicketManager implements AttendanceManagerInterface
             ->whereIn('status', ['VERIFIED', 'PENDING'])
             ->count();
             
-        if ($currentRegistrations >= $event->quota) {
+        if ($event->quota !== null && $event->quota > 0 && $currentRegistrations >= $event->quota) {
             throw new Exception("Mohon maaf, kuota untuk event ini sudah penuh.");
         }
     }

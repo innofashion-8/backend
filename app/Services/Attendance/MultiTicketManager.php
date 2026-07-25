@@ -26,7 +26,7 @@ class MultiTicketManager implements AttendanceManagerInterface
                   ->whereIn('status', ['VERIFIED', 'PENDING']);
         })->count();
 
-        if ($currentTickets + $requestedTickets > $event->quota) {
+        if ($event->quota !== null && $event->quota > 0 && $currentTickets + $requestedTickets > $event->quota) {
             throw new Exception("Mohon maaf, sisa kuota tiket tidak mencukupi untuk request Anda.");
         }
     }

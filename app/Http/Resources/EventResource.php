@@ -17,7 +17,7 @@ class EventResource extends JsonResource
     {
         $isMultiTicket = $this->category === EventCategory::FASHION_SHOW || ($this->max_tickets_per_user ?? 1) > 1;
         $ticketsCount = $isMultiTicket ? ($this->event_tickets_count ?? 0) : ($this->event_registrations_count ?? 0);
-        $quotaLeft = max(0, $this->quota - $ticketsCount);
+        $quotaLeft = ($this->quota !== null && $this->quota > 0) ? max(0, $this->quota - $ticketsCount) : null;
 
         return [
             'id'          => $this->id,
@@ -50,7 +50,7 @@ class EventResource extends JsonResource
             'close_registration_at_human' => $this->close_registration_at?->translatedFormat('d F Y, H:i'),
 
             // Helper: apakah pendaftaran masih terbuka saat ini
-            'is_registration_open' => (!$this->close_registration_at || now()->lessThanOrEqualTo($this->close_registration_at)) && $quotaLeft > 0,
+            'is_registration_open' => (!$this->close_registration_at || now()->lessThanOrEqualTo($this->close_registration_at)) && ($quotaLeft === null || $quotaLeft > 0),
             
             'is_active'   => $this->is_active,
         ];

@@ -31,7 +31,7 @@ class SaveEventRequest extends ApiRequest
             'category'    => ['required', new Enum(EventCategory::class)],
             'description' => 'nullable|string',
             'price'       => 'required|integer|min:0',
-            'quota'       => 'required|integer|min:1',
+            'quota'       => 'required|integer|min:0',
             'max_tickets_per_user' => 'nullable|integer|min:1',
             'venue'       => 'nullable|string|max:255',
             'wa_link'     => 'nullable|url',
