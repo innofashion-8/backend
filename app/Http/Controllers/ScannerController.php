@@ -61,13 +61,13 @@ class ScannerController extends Controller
             ]);
         }
         
-        if (!isset($payload->type) || !isset($payload->exp)) {
+        if (!isset($payload->type) || !property_exists($payload, 'exp')) {
              throw ValidationException::withMessages([
                 'token' => ['INVALID PROTOCOL: Format QR Code tidak sesuai. Atribut type dan exp wajib ada.']
             ]);
         }
     
-        if (now()->timestamp > $payload->exp) {
+        if ($payload->exp > 0 && now()->timestamp > $payload->exp) {
             throw ValidationException::withMessages([
                 'token' => ['EXPIRED PROTOCOL: QR Code sudah kadaluarsa. Silakan scan ulang.']
             ]);

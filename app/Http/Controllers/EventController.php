@@ -79,7 +79,7 @@ class EventController extends Controller
         $payload = json_encode([
             'type'     => 'event',
             'event_id' => $event->id,
-            'exp'      => now()->addSeconds($validity + 5)->timestamp,
+            'exp'      => $validity === 0 ? 0 : now()->addSeconds($validity + 5)->timestamp,
         ]);
         $token = Crypt::encryptString($payload);
 
