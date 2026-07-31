@@ -26,7 +26,9 @@ class BriefingStylingSeeder extends Seeder
             return;
         }
 
-        $competitionRestyling = Competition::with(['competitionRegistrations.members'])->where('slug', 'restyling')->first();
+        $competitionRestyling = Competition::with(['competitionRegistrations' => function ($query) {
+            $query->where('status', StatusRegistration::VERIFIED->value)->with('members');
+        }])->where('slug', 'restyling')->first();
         
         if (!$competitionRestyling) {
             $this->command->error('Competition Restyling not found.');
@@ -40,7 +42,7 @@ class BriefingStylingSeeder extends Seeder
             EventRegistration::firstOrCreate(
                 ['user_id' => $competitionRegistration->user_id, 'event_id' => $briefingRestyling->id],
                 [
-                    'status' => StatusRegistration::PENDING->value, // Sengaja dibuat PENDING agar bisa trigger email manual via web
+                    'status' => StatusRegistration::VERIFIED->value, 
                 ]
             );
 
@@ -50,7 +52,7 @@ class BriefingStylingSeeder extends Seeder
                     EventRegistration::firstOrCreate(
                         ['user_id' => $member->user_id, 'event_id' => $briefingRestyling->id],
                         [
-                            'status' => StatusRegistration::PENDING->value,
+                            'status' => StatusRegistration::VERIFIED->value,
                         ]
                     );
                 }
