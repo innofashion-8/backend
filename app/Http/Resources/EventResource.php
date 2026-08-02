@@ -3,6 +3,8 @@
 namespace App\Http\Resources;
 
 use App\Enum\EventCategory;
+use App\Models\User;
+use App\Services\TicketRuleService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -19,6 +21,10 @@ class EventResource extends JsonResource
         $ticketsCount = $isMultiTicket ? ($this->event_tickets_count ?? 0) : ($this->event_registrations_count ?? 0);
         $quotaLeft = ($this->quota !== null && $this->quota > 0) ? max(0, $this->quota - $ticketsCount) : null;
 
+        $authUser = auth('sanctum')->user();
+        $userForTickets = $authUser instanceof User ? $authUser : null;
+        $dynamicMaxTickets = TicketRuleService::calculateMaxTickets($this->resource, $userForTickets);
+
         return [
             'id'          => $this->id,
             'title'       => $this->title,
@@ -29,6 +35,7 @@ class EventResource extends JsonResource
             'quota'       => $this->quota,
             'quota_left'  => $quotaLeft,
             'max_tickets_per_user' => $this->max_tickets_per_user,
+            'dynamic_max_tickets_per_user' => $dynamicMaxTickets,
             'venue'       => $this->venue,
             'wa_link'     => $this->wa_link,
             
