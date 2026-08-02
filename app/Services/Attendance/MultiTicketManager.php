@@ -12,13 +12,17 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Exception;
 use Illuminate\Support\Facades\DB;
+use App\Models\User;
+use App\Services\TicketRuleService;
 
 class MultiTicketManager implements AttendanceManagerInterface
 {
-    public function validateQuota(Event $event, int $requestedTickets): void
+    public function validateQuota(Event $event, int $requestedTickets, ?User $user = null): void
     {
-        if ($requestedTickets > $event->max_tickets_per_user) {
-            throw new Exception("You can only request up to {$event->max_tickets_per_user} tickets.");
+        $dynamicMaxTickets = TicketRuleService::calculateMaxTickets($event, $user);
+        
+        if ($requestedTickets > $dynamicMaxTickets) {
+            throw new Exception("You can only request up to {$dynamicMaxTickets} tickets.");
         }
 
         $currentTickets = EventTicket::whereHas('registration', function($query) use ($event) {

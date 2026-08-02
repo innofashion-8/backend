@@ -9,10 +9,11 @@ use App\Enum\AttendedStatus;
 use App\DTOs\TicketDTO;
 use Illuminate\Support\Collection;
 use Exception;
+use App\Models\User;
 
 class SingleTicketManager implements AttendanceManagerInterface
 {
-    public function validateQuota(Event $event, int $requestedTickets): void
+    public function validateQuota(Event $event, int $requestedTickets, ?User $user = null): void
     {
         if ($requestedTickets > 1) {
             throw new Exception("This event only allows 1 ticket per registration.");

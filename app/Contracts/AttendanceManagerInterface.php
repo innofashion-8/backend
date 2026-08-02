@@ -6,9 +6,11 @@ use App\Models\Event;
 use App\Models\EventRegistration;
 use Illuminate\Support\Collection;
 
+use App\Models\User;
+
 interface AttendanceManagerInterface
 {
-    public function validateQuota(Event $event, int $requestedTickets): void;
+    public function validateQuota(Event $event, int $requestedTickets, ?User $user = null): void;
     public function generateTickets(EventRegistration $registration, array $guestNames = []): void;
     public function getTickets(EventRegistration $registration): Collection;
     
