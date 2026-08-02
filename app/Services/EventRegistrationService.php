@@ -278,7 +278,7 @@ class EventRegistrationService
             $attendanceManager = AttendanceManagerFactory::makeForEvent($event);
             $guestNames = $dto->guestNames ?? [$user->name];
             
-            $attendanceManager->validateQuota($event, count($guestNames));
+            $attendanceManager->validateQuota($event, count($guestNames), $user);
             $attendanceManager->generateTickets($registration, $guestNames);
 
             DB::commit();
