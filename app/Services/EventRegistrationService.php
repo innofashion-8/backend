@@ -84,6 +84,25 @@ class EventRegistrationService
             });
         }
 
+        if ($filter->participantType) {
+            $participantType = $filter->participantType;
+            $hasVerifiedCompetition = function ($q) {
+                $q->whereHas('competitionRegistrations', function ($q2) {
+                    $q2->where('status', StatusRegistration::VERIFIED->value);
+                })->orWhereHas('competitionMembers', function ($q2) {
+                    $q2->whereHas('registration', function ($q3) {
+                        $q3->where('status', StatusRegistration::VERIFIED->value);
+                    });
+                });
+            };
+
+            if ($participantType === 'COMPETITION_PARTICIPANT') {
+                $query->whereHas('user', $hasVerifiedCompetition);
+            } elseif ($participantType === 'NON_PARTICIPANT') {
+                $query->whereDoesntHave('user', $hasVerifiedCompetition);
+            }
+        }
+
         if ($filter->attendedStatus) {
             $query->where('attended_status', $filter->attendedStatus);
         }
