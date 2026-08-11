@@ -74,13 +74,4 @@ class N8nNotificationListener
 
         dispatch(new SendN8nWebhookJob($payload));
     }
-
-    public function subscribe($events): array
-    {
-        return [
-            RegistrationSubmitted::class => 'handleRegistrationSubmitted',
-            RegistrationStatusUpdated::class => 'handleStatusUpdated',
-            TicketCheckedIn::class => 'handleCheckedIn',
-        ];
-    }
 }
