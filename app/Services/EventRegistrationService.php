@@ -10,6 +10,8 @@ use App\Enum\AttendedStatus;
 use App\Enum\QuestionType;
 use App\Enum\StatusRegistration;
 use App\Enum\UserType;
+use App\Events\RegistrationStatusUpdated;
+use App\Events\RegistrationSubmitted;
 use App\Mail\RegistrationRejected;
 use App\Mail\RegistrationVerified;
 use App\Models\Evaluation;
@@ -302,6 +304,8 @@ class EventRegistrationService
 
             DB::commit();
 
+            event(new RegistrationSubmitted($registration, 'event'));
+
             return $registration;
         } catch (\Exception $e) {
             
@@ -345,8 +349,10 @@ class EventRegistrationService
                 Mail::to($registration->user->email)->queue(new RegistrationRejected($registration, $dto->rejection_reason));
             }
         } catch (\Exception $e) {
-            Log::error("Gagal mengirim email status pendaftaran: " . $e->getMessage());
+            Log::error("Gagal mengirim email status pendaftaran event: " . $e->getMessage());
         }
+
+        event(new RegistrationStatusUpdated($registration, 'event'));
 
         return $registration;
     }

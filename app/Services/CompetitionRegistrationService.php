@@ -12,6 +12,8 @@ use App\Enum\FileType;
 use App\Enum\ParticipantType;
 use App\Enum\StatusRegistration;
 use App\Enum\UserType;
+use App\Events\RegistrationStatusUpdated;
+use App\Events\RegistrationSubmitted;
 use App\Mail\RegistrationRejected;
 use App\Mail\RegistrationVerified;
 use App\Models\Competition;
@@ -305,6 +307,8 @@ class CompetitionRegistrationService
 
             DB::commit();
 
+            event(new RegistrationSubmitted($registration, 'competition'));
+
             return $registration;
 
         } catch (\Exception $e) {
@@ -410,6 +414,8 @@ class CompetitionRegistrationService
         } catch (\Exception $e) {
             Log::error("Gagal mengirim email status pendaftaran: " . $e->getMessage());
         }
+
+        event(new RegistrationStatusUpdated($registration, 'competition'));
 
         return $registration;
     }

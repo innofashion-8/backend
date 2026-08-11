@@ -7,6 +7,7 @@ use App\Models\Event;
 use App\Models\EventRegistration;
 use App\Enum\AttendedStatus;
 use App\DTOs\TicketDTO;
+use App\Events\TicketCheckedIn;
 use Illuminate\Support\Collection;
 use Exception;
 use App\Models\User;
@@ -58,6 +59,8 @@ class SingleTicketManager implements AttendanceManagerInterface
             'attended_status' => AttendedStatus::CHECKED_IN->value,
             'check_in_at' => now()
         ]);
+
+        event(new TicketCheckedIn($reg));
 
         return [
             'type' => 'EVENT',

@@ -8,6 +8,7 @@ use App\Models\EventRegistration;
 use App\Models\EventTicket;
 use App\Enum\AttendedStatus;
 use App\DTOs\TicketDTO;
+use App\Events\TicketCheckedIn;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Exception;
@@ -92,6 +93,8 @@ class MultiTicketManager implements AttendanceManagerInterface
             }
 
             DB::commit();
+
+            event(new TicketCheckedIn($ticket));
         } catch (Exception $e) {
             DB::rollBack();
             throw $e;
