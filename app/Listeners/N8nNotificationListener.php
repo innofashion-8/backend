@@ -21,6 +21,7 @@ class N8nNotificationListener
 
     public function handleRegistrationSubmitted(RegistrationSubmitted $event): void
     {
+        $url = env('N8N_WEBHOOK_URL_NOTIFICATION');
         $payload = [
             'event_type' => 'new_registration',
             'data' => [
@@ -32,11 +33,12 @@ class N8nNotificationListener
             ]
         ];
 
-        dispatch(new SendN8nWebhookJob($payload));
+        dispatch(new SendN8nWebhookJob($payload, $url));
     }
 
     public function handleStatusUpdated(RegistrationStatusUpdated $event): void
     {
+        $url = env('N8N_WEBHOOK_URL_NOTIFICATION');
         $statusStr = $event->registration->status;
         $icon = $statusStr === StatusRegistration::VERIFIED ? '✅' : ($statusStr === StatusRegistration::REJECTED ? '❌' : '⚠️');
         
@@ -51,11 +53,12 @@ class N8nNotificationListener
             ]
         ];
 
-        dispatch(new SendN8nWebhookJob($payload));
+        dispatch(new SendN8nWebhookJob($payload, $url));
     }
 
     public function handleCheckedIn(TicketCheckedIn $event): void
     {
+        $url = env('N8N_WEBHOOK_URL_CHECK_IN');
         $item = $event->ticket;
         
         $eventName = $item->registration?->event?->title ?? ($item->event?->title ?? 'Event');
@@ -93,6 +96,6 @@ class N8nNotificationListener
             'data'        => $sheetData
         ];
 
-        dispatch(new SendN8nWebhookJob($payload));
+        dispatch(new SendN8nWebhookJob($payload, $url));
     }
 }

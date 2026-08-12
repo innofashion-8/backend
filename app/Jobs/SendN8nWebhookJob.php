@@ -12,13 +12,15 @@ class SendN8nWebhookJob implements ShouldQueue
     use Queueable;
 
     public $payload;
+    public $url;
 
     /**
      * Create a new job instance.
      */
-    public function __construct(array $payload)
+    public function __construct(array $payload, string $url)
     {
         $this->payload = $payload;
+        $this->url = $url;
     }
 
     /**
@@ -26,10 +28,9 @@ class SendN8nWebhookJob implements ShouldQueue
      */
     public function handle(): void
     {
-        $url = env('N8N_WEBHOOK_URL');
         $secretKey = env('N8N_SECRET_KEY');
         
-        if (!$url) {
+        if (!$this->url) {
             Log::warning('N8N_WEBHOOK_URL is not set in .env');
             return;
         }
@@ -44,7 +45,7 @@ class SendN8nWebhookJob implements ShouldQueue
                 ->withHeaders([
                     'X-Secret-Key' => $secretKey,
                 ])
-                ->post($url, $this->payload);
+                ->post($this->url, $this->payload);
         } catch (\Exception $e) {
             Log::error('Failed to send webhook to n8n: ' . $e->getMessage());
         }
