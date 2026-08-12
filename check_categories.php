@@ -37,10 +37,14 @@ foreach ($tickets as $ticket) {
     // Cek apakah dia Keluarga DFT berdasarkan email di seeder
     $isDFT = in_array($user->email, $dftEmails);
 
-    // Cek apakah dia Participant Lomba (ada di tabel registrasi sebagai leader ATAU member)
-    $isParticipant = CompetitionRegistration::where('user_id', $user->id)->exists();
-    if (!$isParticipant) {
-        $isParticipant = CompetitionMember::where('user_id', $user->id)->exists();
+    // Cek apakah dia Participant Lomba TAPI HANYA untuk tiket utamanya
+    // Tiket tamu/keluarga tidak dihitung sebagai peserta lomba
+    $isParticipant = false;
+    if ($ticket->guest_name === $user->name) {
+        $isParticipant = CompetitionRegistration::where('user_id', $user->id)->exists();
+        if (!$isParticipant) {
+            $isParticipant = CompetitionMember::where('user_id', $user->id)->exists();
+        }
     }
     
     if ($isDFT && $isParticipant) {
