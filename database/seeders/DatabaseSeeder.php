@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             AdminRoleSeeder::class,
             EventSeeder::class,
             CompetitionSeeder::class,
+            ParticipantAndGuestSeeder::class,
             // UserSeeder::class
         ]);
     }

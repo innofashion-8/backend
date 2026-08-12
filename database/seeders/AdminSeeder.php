@@ -127,7 +127,12 @@ class AdminSeeder extends Seeder
                 'email' => 'c14240176@john.petra.ac.id',
                 'division_slug' => 'it',
             ],
-            
+            [
+                'name' => 'Admin IT',
+                'nrp' => 'C14250002',
+                'email' => 'c14250002@john.petra.ac.id',
+                'division_slug' => 'it',
+            ],
         ];
 
         foreach ($adminsData as $adminData) {

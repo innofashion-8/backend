@@ -12,6 +12,7 @@ use App\Http\Controllers\EventRegistrationController;
 use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ScannerController;
+use App\Http\Controllers\AttendanceLogController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
@@ -104,6 +105,7 @@ Route::middleware('auth:admin')->group(function () {
         Route::middleware(['permission:scan_attendance'])->prefix('scan')->group(function () {
             Route::post('/attendance', [ScannerController::class, 'adminCheckIn']);
         });
+        Route::middleware(['permission:scan_attendance'])->get('/attendance-logs', [AttendanceLogController::class, 'index']);
         Route::get('/events/{key}/rotating-qr', [EventController::class, 'getRotatingQr']);
 
         Route::middleware(['permission:manage_divisions'])->prefix('divisions')->group(function () {
