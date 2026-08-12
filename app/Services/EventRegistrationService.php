@@ -87,7 +87,7 @@ class EventRegistrationService
         }
 
         if ($filter->participantType) {
-            $participantType = $filter->participantType;
+            $type = $filter->participantType;
             $hasVerifiedCompetition = function ($q) {
                 $q->whereHas('competitionRegistrations', function ($q2) {
                     $q2->where('status', StatusRegistration::VERIFIED->value);
@@ -98,10 +98,25 @@ class EventRegistrationService
                 });
             };
 
-            if ($participantType === 'COMPETITION_PARTICIPANT') {
-                $query->whereHas('user', $hasVerifiedCompetition);
-            } elseif ($participantType === 'NON_PARTICIPANT') {
-                $query->whereDoesntHave('user', $hasVerifiedCompetition);
+            if ($type === 'COMPETITION_PARTICIPANT') {
+                $query->where(function($q) use ($hasVerifiedCompetition) {
+                    $q->whereHas('tickets', function($qt) {
+                        $qt->where('ticket_category', 'competition_participant');
+                    })->orWhereHas('user', $hasVerifiedCompetition);
+                });
+            } elseif ($type === 'DFT22') {
+                $query->whereHas('tickets', function($qt) {
+                    $qt->where('ticket_category', 'dft22');
+                });
+            } elseif ($type === 'GUEST') {
+                $query->where(function($q) use ($hasVerifiedCompetition) {
+                    $q->whereHas('tickets', function($qt) {
+                        $qt->where('ticket_category', 'guest');
+                    })->orWhere(function($q2) use ($hasVerifiedCompetition) {
+                        $q2->doesntHave('tickets')
+                           ->whereDoesntHave('user', $hasVerifiedCompetition);
+                    });
+                });
             }
         }
 
