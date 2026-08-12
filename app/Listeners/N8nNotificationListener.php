@@ -2,6 +2,7 @@
 
 namespace App\Listeners;
 
+use App\Enum\StatusRegistration;
 use App\Events\RegistrationStatusUpdated;
 use App\Events\RegistrationSubmitted;
 use App\Events\TicketCheckedIn;
@@ -35,8 +36,8 @@ class N8nNotificationListener
 
     public function handleStatusUpdated(RegistrationStatusUpdated $event): void
     {
-        $statusStr = $event->registration->status ?? 'UNKNOWN';
-        $icon = $statusStr === 'VERIFIED' ? '✅' : ($statusStr === 'REJECTED' ? '❌' : '⚠️');
+        $statusStr = $event->registration->status;
+        $icon = $statusStr === StatusRegistration::VERIFIED ? '✅' : ($statusStr === StatusRegistration::REJECTED ? '❌' : '⚠️');
         
         $payload = [
             'event_type' => 'status_updated',
@@ -45,7 +46,7 @@ class N8nNotificationListener
                 'email' => $event->registration->user->email ?? 'Unknown',
                 'event_name' => $event->type === 'event' ? ($event->registration->event->title ?? 'Event') : ($event->registration->competition->name ?? 'Competition'),
                 'status' => $statusStr,
-                'message' => "{$icon} Status pendaftaran {$event->registration->user->name} telah diperbarui menjadi {$statusStr}."
+                'message' => "{$icon} Status pendaftaran {$event->registration->user->name} telah diperbarui menjadi {$statusStr->value}."
             ]
         ];
 
