@@ -66,6 +66,7 @@ class SingleTicketManager implements AttendanceManagerInterface
             'type' => 'EVENT',
             'item_name' => $reg->event->title,
             'user_name' => $reg->user->name,
+            'category' => 'guest',
         ];
     }
 }

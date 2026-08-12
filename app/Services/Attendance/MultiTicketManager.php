@@ -8,7 +8,10 @@ use App\Models\EventRegistration;
 use App\Models\EventTicket;
 use App\Enum\AttendedStatus;
 use App\DTOs\TicketDTO;
+use App\Enum\TicketCategory;
 use App\Events\TicketCheckedIn;
+use App\Models\CompetitionMember;
+use App\Models\CompetitionRegistration;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Exception;
@@ -38,6 +41,14 @@ class MultiTicketManager implements AttendanceManagerInterface
 
     public function generateTickets(EventRegistration $registration, array $guestNames = []): void
     {
+        $user = $registration->user;
+        
+        $participantUserIds = collect();
+        $participantUserIds = $participantUserIds->merge(CompetitionRegistration::pluck('user_id'));
+        $participantUserIds = $participantUserIds->merge(CompetitionMember::pluck('user_id'));
+        $participantUserIds = $participantUserIds->unique()->toArray();
+        $isParticipant = $user ? in_array($user->id, $participantUserIds) : false;
+
         foreach ($guestNames as $name) {
             $ticketCode = 'TIX-' . strtoupper(Str::random(8));
             
@@ -46,10 +57,19 @@ class MultiTicketManager implements AttendanceManagerInterface
                 $ticketCode = 'TIX-' . strtoupper(Str::random(8));
             }
 
+            // Fallback for new registrations
+            $category = TicketCategory::GUEST->value;
+            if (str_starts_with($name, 'Keluarga ')) {
+                $category = TicketCategory::DFT22->value;
+            } elseif ($isParticipant) {
+                $category = TicketCategory::COMPETITION_PARTICIPANT->value;
+            }
+
             EventTicket::create([
                 'ticket_code' => $ticketCode,
                 'event_registration_id' => $registration->id,
                 'guest_name' => $name,
+                'ticket_category' => $category,
                 'attended_status' => AttendedStatus::PENDING->value,
             ]);
         }
@@ -104,6 +124,7 @@ class MultiTicketManager implements AttendanceManagerInterface
             'type' => 'TICKET',
             'item_name' => $ticket->registration->event->title,
             'user_name' => $ticket->guest_name,
+            'category' => $ticket->ticket_category?->value ?? 'guest',
         ];
     }
 }
