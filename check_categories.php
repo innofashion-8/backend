@@ -8,7 +8,6 @@ use App\Models\EventTicket;
 use App\Models\CompetitionRegistration;
 use App\Models\CompetitionMember;
 
-// Dapatkan daftar email dari seeder secara dinamis biar 100% akurat
 $seederContent = file_get_contents(database_path('seeders/TicketKeluargaDFTSeeder.php'));
 preg_match_all("/'email'\s*=>\s*'([^']+)'/", $seederContent, $matches);
 $dftEmails = $matches[1];
@@ -22,7 +21,6 @@ $categories = [
     'DFT22_AND_Participant' => 0,
 ];
 
-// Lacak email orang yang rangkap jabatan
 $overlapEmails = [];
 
 foreach ($tickets as $ticket) {
@@ -34,22 +32,26 @@ foreach ($tickets as $ticket) {
         continue;
     }
     
-    // Cek apakah dia Keluarga DFT berdasarkan email di seeder
+    // Cek apakah dia masuk kloter Keluarga DFT
     $isDFT = in_array($user->email, $dftEmails);
 
-    // Cek apakah dia Participant Lomba TAPI HANYA untuk tiket utamanya
-    // Tiket tamu/keluarga tidak dihitung sebagai peserta lomba
-    $isParticipant = false;
-    if ($ticket->guest_name === $user->name) {
-        $isParticipant = CompetitionRegistration::where('user_id', $user->id)->exists();
-        if (!$isParticipant) {
-            $isParticipant = CompetitionMember::where('user_id', $user->id)->exists();
-        }
+    // Cek apakah dia Participant Lomba
+    $isParticipant = CompetitionRegistration::where('user_id', $user->id)->exists();
+    if (!$isParticipant) {
+        $isParticipant = CompetitionMember::where('user_id', $user->id)->exists();
     }
     
     if ($isDFT && $isParticipant) {
-        $categories['DFT22_AND_Participant']++;
-        $overlapEmails[] = $user->email;
+        // Khusus untuk yang dobel jabatan (Keluarga DFT + Peserta)
+        // Kita pisahkan antara TIKET UTAMA dia (ikut lomba) dan TIKET KELUARGANYA
+        if (str_starts_with($ticket->guest_name, 'Keluarga ')) {
+            // Ini tiket tamu keluarganya, jadi masuk DFT22 murni
+            $categories['DFT22']++;
+        } else {
+            // Ini tiket pribadinya dia, jadi masuk dobel jabatan
+            $categories['DFT22_AND_Participant']++;
+            $overlapEmails[] = $user->email;
+        }
     } elseif ($isDFT) {
         $categories['DFT22']++;
     } elseif ($isParticipant) {
