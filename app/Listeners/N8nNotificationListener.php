@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Enum\StatusRegistration;
+use App\Enum\TicketCategory;
 use App\Events\RegistrationStatusUpdated;
 use App\Events\RegistrationSubmitted;
 use App\Events\TicketCheckedIn;
@@ -57,20 +58,39 @@ class N8nNotificationListener
     {
         $item = $event->ticket;
         
-        $guestName = $item->guest_name ?? ($item->user?->name ?? 'Unknown');
-        $ticketCode = $item->ticket_code ?? ($item->id ?? 'Unknown');
-        
-        // Gunakan nullsafe operator (?->) agar tidak error jika relasi tidak ada
         $eventName = $item->registration?->event?->title ?? ($item->event?->title ?? 'Event');
+        
+        $isSingleTicket = empty($item->ticket_code); 
+        $attendedStatus = $isSingleTicket ? $item->attended_status?->value : ($item->registration?->attended_status?->value ?? 'PENDING');
+        $checkInAt = $isSingleTicket ? $item->check_in_at?->setTimezone('Asia/Jakarta')->toDateTimeString() : ($item->registration?->check_in_at?->setTimezone('Asia/Jakarta')->toDateTimeString() ?? now()->setTimezone('Asia/Jakarta')->toDateTimeString());
+        $userName = $isSingleTicket ? $item->user?->name : $item->registration?->user?->name ?? ($item->user?->name ?? 'Unknown');
+
+        // Mapping Dinamis Berdasarkan Tipe Tiket
+        if ($isSingleTicket) {
+            $sheetData = [
+                'Ticket Code'     => (string) ($item->id ?? 'Unknown'),
+                'Name'            => $userName,
+                'Attended Status' => $attendedStatus,
+                'Check In At'     => $checkInAt,
+            ];
+            $ticketType = 'Single Ticket';
+        } else {
+            $sheetData = [
+                'Ticket Code'     => $item->ticket_code ?? 'Unknown',
+                'Category'        => $item->ticket_category?->value ?? TicketCategory::GUEST->value,
+                'Registration By' => $userName,
+                'Guest Name'      => $item->guest_name ?? 'Unknown',
+                'Attended Status' => $attendedStatus,
+                'Check In At'     => $checkInAt,
+            ];
+            $ticketType = 'Multi Ticket';
+        }
 
         $payload = [
-            'event_type' => 'checked_in',
-            'data' => [
-                'guest_name' => $guestName,
-                'ticket_code' => $ticketCode,
-                'event_name' => $eventName,
-                'message' => "🎟️ {$guestName} baru saja check-in ke venue!"
-            ]
+            'event_type'  => 'checked_in',
+            'event_name'  => $eventName,
+            'ticket_type' => $ticketType,
+            'data'        => $sheetData
         ];
 
         dispatch(new SendN8nWebhookJob($payload));
