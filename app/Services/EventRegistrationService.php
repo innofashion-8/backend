@@ -12,6 +12,7 @@ use App\Enum\StatusRegistration;
 use App\Enum\UserType;
 use App\Events\RegistrationStatusUpdated;
 use App\Events\RegistrationSubmitted;
+use App\Http\Resources\EventTicketResource;
 use App\Mail\RegistrationRejected;
 use App\Mail\RegistrationVerified;
 use App\Models\Evaluation;
@@ -585,5 +586,13 @@ class EventRegistrationService
     public function processCheckOutAndEvaluate($user, string $eventId, array $answers)
     {
         return $this->submitEvaluationAndCheckOut($user, $eventId, $answers);
+    }
+
+    public function getTickets() {
+        $tickets = EventTicket::with('registration.user')
+                            ->latest()
+                            ->get();
+        
+        return EventTicketResource::collection($tickets);
     }
 }

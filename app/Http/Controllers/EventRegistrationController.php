@@ -193,4 +193,10 @@ class EventRegistrationController extends Controller
 
         return $this->success($result['status'], $result);
     }
+
+    public function getTickets(Request $request) {
+        $tickets = $this->registrationService->getTickets();
+        
+        return $this->success("Tickets fetched successfully", $tickets);
+    }
 }

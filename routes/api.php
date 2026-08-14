@@ -59,6 +59,10 @@ Route::middleware('auth:user')->group(function () {
     Route::post('/scanner/user-check-in', [ScannerController::class, 'userScanCheckIn']);
 });
 
+Route::middleware('n8n')->prefix('admin')->group(function () {
+    Route::get('/tickets', [EventRegistrationController::class, 'getTickets']);
+});
+
 Route::middleware('auth:admin')->group(function () {
     Route::prefix('admin')->group(function () {
         Route::post('/impersonate', [AuthController::class, 'impersonate']);
