@@ -122,7 +122,10 @@ class EventRegistrationService
         }
 
         if ($filter->attendedStatus) {
-            $query->where('attended_status', $filter->attendedStatus);
+            $query->where('attended_status', $filter->attendedStatus)
+                ->orWhereHas('tickets', function($qt) use ($filter) {
+                    $qt->where('attended_status', $filter->attendedStatus);
+                });
         }
 
         if ($filter->search) {
